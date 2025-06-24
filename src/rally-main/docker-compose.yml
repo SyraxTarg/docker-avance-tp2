@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: rally
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - rally-network
+
+  rally-back:
+    build:
+      context: ./rally_back
+      dockerfile: Dockerfile
+    env_file:
+      - rally_back/.env.dev
+    container_name: rally_back
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/rally_back
+    networks:
+      - rally-network
+
+  # rally-front:
+  #   build:
+  #     context: ./rally_front
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - rally_front/.env
+  #   container_name: rally_front
+  #   depends_on:
+  #     - db
+  #     - rally-back
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./rally_front:/app
+  #   networks:
+  #     - rally-network
+
+networks:
+  rally-network:
+    driver: bridge
+
+volumes:
+  pgdata:

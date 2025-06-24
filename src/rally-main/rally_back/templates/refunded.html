@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Confirmation de Remboursement - Rally</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 30px; color: #1E293B;">
+  <div style="max-width: 700px; margin: auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+
+    <!-- Header -->
+    <div style="background-color: #0F172A; padding: 24px;">
+      <h1 style="margin: 0; color: #F7FAF6; font-size: 24px;">Remboursement confirmé</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div style="padding: 32px;">
+      <p>Bonjour {{ refund.buyer_email or 'utilisateur' }},</p>
+      <p>Nous vous confirmons que votre paiement pour l'événement suivant a bien été remboursé :</p>
+
+      <table style="margin-top: 24px; width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 10px; font-weight: 600;">Événement :</td>
+          <td style="padding: 10px;">{{ refund.event_title }}</td>
+        </tr>
+        <tr style="background-color: #F8FAFC;">
+          <td style="padding: 10px; font-weight: 600;">Organisateur :</td>
+          <td style="padding: 10px;">{{ refund.organizer_email }}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; font-weight: 600;">ID de paiement Stripe :</td>
+          <td style="padding: 10px;">{{ refund.stripe_payment_intent_id or 'N/A' }}</td>
+        </tr>
+      </table>
+
+      <table style="margin-top: 30px; width: 100%; border-top: 1px solid #E2E8F0; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 12px 10px;"><strong>Montant remboursé :</strong></td>
+          <td style="padding: 12px 10px; text-align: right; font-weight: 700;">{{ "%.2f"|format(refund.amount / 100) }} €</td>
+        </tr>
+      </table>
+
+      <p style="margin-top: 40px; font-size: 14px; color: #64748B;">
+        Le montant vous sera recrédité sur votre compte bancaire dans les prochains jours, selon les délais de votre établissement bancaire.<br />
+        – L’équipe Rally
+      </p>
+    </div>
+  </div>
+</body>
+</html>
