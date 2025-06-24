@@ -27,6 +27,8 @@ from routes import (
 load_dotenv()
 
 FRONT_HOST = os.getenv("RALLY_FRONT_HOST")
+LISTEN_IP = os.getenv("LISTEN_IP")
+LISTEN_PORT = os.getenv("LISTEN_PORT")
 
 Base.metadata.create_all(bind=engine)
 
@@ -71,6 +73,4 @@ app.include_router(pictures_routes.router)
 # Démarrage du serveur
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True,
-                ssl_certfile="certs/127.0.0.1.pem",
-                ssl_keyfile="certs/127.0.0.1-key.pem")
+    uvicorn.run("main:app", host=f"{LISTEN_IP}", port=int(LISTEN_PORT), reload=True)
