@@ -1,4 +1,4 @@
-name: Pytest rally_back
+name: CI rally_back
 
 on:
   push:
@@ -7,22 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    runs-on: debian:stable
-    # services:
-    #   postgres:
-    #     image: postgres:15
-    #     env:
-    #       POSTGRES_USER: root
-    #       POSTGRES_PASSWORD: root
-    #       POSTGRES_DB: rally
-    #     ports:
-    #       - 5432:5432
-    #     options: >-
-    #       --health-cmd pg_isready
-    #       --health-interval 10s
-    #       --health-timeout 5s
-    #       --health-retries 5
+  lint:
+    runs-on: debian-stable
+
 
     strategy:
       matrix:
@@ -40,26 +27,6 @@ jobs:
       - name: Install dependencies
         working-directory: .
         run: pip install -r requirements.txt
-
-
-      # - name: Wait for Postgres to be ready
-      #   run: |
-      #     for i in {1..10}; do
-      #       nc -z localhost 5432 && echo "Postgres is up!" && break
-      #       echo "Waiting for Postgres..." && sleep 2
-      #     done
-
-      # - name: Run tests
-      #   working-directory: ./src/rally-main/rally_back
-      #   env:
-      #     DATABASE_URL: postgresql://root:root@localhost:5432/rally
-      #     PYTHONPATH: ${{ github.workspace }}/rally_back
-      #     BANNED_TERMS_PATH: ${{ github.workspace }}/rally_back/errors/banned_words.txt
-      #     SECRET_KEY: popo
-      #     ALGORITHM: HS256
-      #     ACCESS_TOKEN_EXPIRE_MINUTES: 60
-      #     REFRESH_TOKEN_EXPIRE_DAYS: 7
-      #   run: pytest
 
       - name: Analysing the code with pylint
         working-directory: ./src/rally-main/rally_back
