@@ -1,0 +1,19 @@
+name: Meow Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  meow-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install cowsay
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cowsay
+
+      - name: Say meow
+        run: /usr/games/cowsay "Meoooow"
