@@ -1,12 +1,15 @@
 """
 This file contains the controller related to events
 """
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from models.user_model import User
-from schemas.response_schemas.profile_schema_response import ProfileRestrictedSchemaResponse
+from schemas.response_schemas.profile_schema_response import (
+    ProfileRestrictedSchemaResponse,
+)
 from services import (
     action_log_service,
     address_service,
@@ -15,21 +18,28 @@ from services import (
     moderation_service,
     profile_service,
     user_service,
-    like_service
+    like_service,
 )
 from schemas.request_schemas.event_schema import EventSchema
-from schemas.response_schemas.event_schema_response import EventSchemaResponse, EventListSchemaResponse
+from schemas.response_schemas.event_schema_response import (
+    EventSchemaResponse,
+    EventListSchemaResponse,
+)
 from schemas.response_schemas.type_schema_response import TypeSchemaResponse
 from schemas.response_schemas.address_schema_response import AddressSchemaResponse
 from schemas.request_schemas.event_picture_schema import EventPictureSchema
-from schemas.response_schemas.event_picture_schema_response import EventPictureSchemaResponse
+from schemas.response_schemas.event_picture_schema_response import (
+    EventPictureSchemaResponse,
+)
 from models.event_picture_model import EventPicture
 from enums.log_level import LogLevelEnum
 from enums.action import ActionEnum
 from errors import NoStripeAccountError, EventNotFound, ProfileNotFound
 
 
-def create_event(db: Session, event: EventSchema, current_user: User) -> EventSchemaResponse:
+def create_event(
+    db: Session, event: EventSchema, current_user: User
+) -> EventSchemaResponse:
     """
     Creates a new event, associates it with the current user, and handles address and pictures.
 
@@ -45,19 +55,19 @@ def create_event(db: Session, event: EventSchema, current_user: User) -> EventSc
         NoStripeAccountError: If the event has a price greater than 0 and the user does not have a Stripe account.
     """
     if event.price > 0.0 and not current_user.account_id:
-        raise NoStripeAccountError(status_code=403, detail="Please create a stripe account before posting an event")
+        raise NoStripeAccountError(
+            status_code=403,
+            detail="Please create a stripe account before posting an event",
+        )
 
-    profile = profile_service.get_profile(
-        db,
-        current_user.id
-    )
+    profile = profile_service.get_profile(db, current_user.id)
     address = address_service.create_address(
         db,
         event.address.city,
         event.address.zipcode,
         event.address.number,
         event.address.street,
-        event.address.country
+        event.address.country,
     )
 
     new_event = event_service.create_event(
@@ -70,7 +80,7 @@ def create_event(db: Session, event: EventSchema, current_user: User) -> EventSc
         event.date,
         event.cloture_billets,
         event.types.types,
-        address.id
+        address.id,
     )
 
     if current_user.is_planner is False:
@@ -79,18 +89,11 @@ def create_event(db: Session, event: EventSchema, current_user: User) -> EventSc
     event_pictures = []
     for picture in event.pictures:
         pic = event_picture_service.create_event_picture(
-            db,
-            new_event.id,
-            picture.photo
+            db, new_event.id, picture.photo
         )
-        event_pictures.append(
-            EventPictureSchemaResponse(
-                id=pic.id,
-                photo=pic.photo
-            )
-        )
+        event_pictures.append(EventPictureSchemaResponse(id=pic.id, photo=pic.photo))
 
-    profile =  ProfileRestrictedSchemaResponse(
+    profile = ProfileRestrictedSchemaResponse(
         id=profile.id,
         first_name=profile.first_name,
         last_name=profile.last_name,
@@ -98,24 +101,19 @@ def create_event(db: Session, event: EventSchema, current_user: User) -> EventSc
         nb_like=profile.nb_like,
         email=current_user.email,
         created_at=profile.created_at,
-        )
+    )
 
     all_types = []
 
     for type_ in new_event.types:
-        all_types.append(
-            TypeSchemaResponse(
-                id=type_.id,
-                type=type_.type
-            )
-        )
+        all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
     event_address = AddressSchemaResponse(
         id=new_event.address.id,
         city=new_event.address.city,
         zipcode=new_event.address.zipcode,
         number=new_event.address.number,
         street=new_event.address.street,
-        country=new_event.address.country
+        country=new_event.address.country,
     )
 
     action_log_service.create_action_log(
@@ -123,7 +121,7 @@ def create_event(db: Session, event: EventSchema, current_user: User) -> EventSc
         current_user.id,
         LogLevelEnum.INFO,
         ActionEnum.EVENT_CREATED,
-        f"Event {new_event.id} created at {new_event.created_at} created by {current_user.email}"
+        f"Event {new_event.id} created at {new_event.created_at} created by {current_user.email}",
     )
 
     return EventSchemaResponse(
@@ -142,11 +140,13 @@ def create_event(db: Session, event: EventSchema, current_user: User) -> EventSc
         updated_at=new_event.updated_at,
         types=all_types,
         pictures=event_pictures,
-        is_liked=False
+        is_liked=False,
     )
 
 
-def get_event_by_id(db: Session, current_user_id: Optional[int], event_id: int) -> EventSchemaResponse:
+def get_event_by_id(
+    db: Session, current_user_id: Optional[int], event_id: int
+) -> EventSchemaResponse:
     """
     Retrieves an event by its ID, along with related information including the profile of the user who created it,
     event types, event pictures, and the event address.
@@ -175,7 +175,7 @@ def get_event_by_id(db: Session, current_user_id: Optional[int], event_id: int) 
 
     user = user_service.get_user(db, profile.user_id)
 
-    profile =  ProfileRestrictedSchemaResponse(
+    profile = ProfileRestrictedSchemaResponse(
         id=profile.id,
         first_name=profile.first_name,
         last_name=profile.last_name,
@@ -183,25 +183,17 @@ def get_event_by_id(db: Session, current_user_id: Optional[int], event_id: int) 
         nb_like=profile.nb_like,
         email=user.email,
         created_at=profile.created_at,
-        )
+    )
 
     all_types = []
 
     for type_ in event.types:
-        all_types.append(
-            TypeSchemaResponse(
-                id=type_.id,
-                type=type_.type
-            )
-        )
+        all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
     event_pictures = []
     for picture in event.pictures:
         event_pictures.append(
-            EventPictureSchemaResponse(
-                id=picture.id,
-                photo=picture.photo
-            )
+            EventPictureSchemaResponse(id=picture.id, photo=picture.photo)
         )
 
     event_address = AddressSchemaResponse(
@@ -210,7 +202,7 @@ def get_event_by_id(db: Session, current_user_id: Optional[int], event_id: int) 
         zipcode=event.address.zipcode,
         number=event.address.number,
         street=event.address.street,
-        country=event.address.country
+        country=event.address.country,
     )
     is_liked = False
     if current_user_id:
@@ -220,8 +212,6 @@ def get_event_by_id(db: Session, current_user_id: Optional[int], event_id: int) 
             is_liked = False
         else:
             is_liked = True
-
-
 
     return EventSchemaResponse(
         id=event.id,
@@ -239,7 +229,7 @@ def get_event_by_id(db: Session, current_user_id: Optional[int], event_id: int) 
         updated_at=event.updated_at,
         types=all_types,
         pictures=event_pictures,
-        is_liked=is_liked
+        is_liked=is_liked,
     )
 
 
@@ -258,7 +248,7 @@ def get_events(
     search: Optional[str],
     price: Optional[float],
     offset: int,
-    limit: int
+    limit: int,
 ) -> EventListSchemaResponse:
     """
     Retrieves a list of events based on various filters, including date range, type, location, and search query.
@@ -301,7 +291,7 @@ def get_events(
         search,
         price,
         offset,
-        limit
+        limit,
     )
 
     all_events = []
@@ -310,11 +300,13 @@ def get_events(
         profile = profile_service.get_profile(db, event.profile_id)
 
         if not profile:
-            raise ProfileNotFound(status_code=404, detail="Le profil n'a pas été trouvé")
+            raise ProfileNotFound(
+                status_code=404, detail="Le profil n'a pas été trouvé"
+            )
 
         user = user_service.get_user(db, profile.user_id)
 
-        profile_schema =  ProfileRestrictedSchemaResponse(
+        profile_schema = ProfileRestrictedSchemaResponse(
             id=profile.id,
             first_name=profile.first_name,
             last_name=profile.last_name,
@@ -322,25 +314,17 @@ def get_events(
             nb_like=profile.nb_like,
             email=user.email,
             created_at=profile.created_at,
-            )
+        )
 
         all_types = []
 
         for type_ in event.types:
-            all_types.append(
-                TypeSchemaResponse(
-                    id=type_.id,
-                    type=type_.type
-                )
-            )
+            all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
         event_pictures = []
         for picture in event.pictures:
             event_pictures.append(
-                EventPictureSchemaResponse(
-                    id=picture.id,
-                    photo=picture.photo
-                )
+                EventPictureSchemaResponse(id=picture.id, photo=picture.photo)
             )
 
         event_address = AddressSchemaResponse(
@@ -349,7 +333,7 @@ def get_events(
             zipcode=event.address.zipcode,
             number=event.address.number,
             street=event.address.street,
-            country=event.address.country
+            country=event.address.country,
         )
 
         is_liked = False
@@ -377,7 +361,7 @@ def get_events(
                 updated_at=event.updated_at,
                 types=all_types,
                 pictures=event_pictures,
-                is_liked=is_liked
+                is_liked=is_liked,
             )
         )
     total_events = event_service.get_count_total_events(
@@ -392,13 +376,13 @@ def get_events(
     )
 
     return EventListSchemaResponse(
-        count=len(all_events),
-        total=total_events,
-        data=all_events
+        count=len(all_events), total=total_events, data=all_events
     )
 
 
-def update_event(db: Session, current_user_id: Optional[int], event_id: int, event: EventSchema) -> EventSchemaResponse:
+def update_event(
+    db: Session, current_user_id: Optional[int], event_id: int, event: EventSchema
+) -> EventSchemaResponse:
     """
     Updates an existing event in the database with the provided details.
 
@@ -427,7 +411,7 @@ def update_event(db: Session, current_user_id: Optional[int], event_id: int, eve
         event.price,
         event.date,
         event.cloture_billets,
-        event.types.types
+        event.types.types,
     )
     address = address_service.update_address(
         db,
@@ -436,13 +420,13 @@ def update_event(db: Session, current_user_id: Optional[int], event_id: int, eve
         event.address.zipcode,
         event.address.number,
         event.address.street,
-        event.address.country
+        event.address.country,
     )
     profile = profile_service.get_profile(db, event_.profile_id)
     user = user_service.get_user(db, profile.user_id)
     update_event_pictures(db, event_.pictures, event.pictures, event_.id)
 
-    profile =  ProfileRestrictedSchemaResponse(
+    profile = ProfileRestrictedSchemaResponse(
         id=profile.id,
         first_name=profile.first_name,
         last_name=profile.last_name,
@@ -450,33 +434,23 @@ def update_event(db: Session, current_user_id: Optional[int], event_id: int, eve
         nb_like=profile.nb_like,
         email=user.email,
         created_at=profile.created_at,
-        )
+    )
 
     all_types = []
 
     for type_ in event_.types:
-        all_types.append(
-            TypeSchemaResponse(
-                id=type_.id,
-                type=type_.type
-            )
-        )
+        all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
     all_pics = []
     for picture in event_.pictures:
-        all_pics.append(
-            EventPictureSchemaResponse(
-                id=picture.id,
-                photo=picture.photo
-            )
-        )
+        all_pics.append(EventPictureSchemaResponse(id=picture.id, photo=picture.photo))
     event_address = AddressSchemaResponse(
         id=address.id,
         city=address.city,
         zipcode=address.zipcode,
         number=address.number,
         street=address.street,
-        country=address.country
+        country=address.country,
     )
 
     action_log_service.create_action_log(
@@ -484,7 +458,7 @@ def update_event(db: Session, current_user_id: Optional[int], event_id: int, eve
         user.id,
         LogLevelEnum.INFO,
         ActionEnum.EVENT_UPDATED,
-        f"Event {event_.id} updated at {event_.updated_at} by {user.email}"
+        f"Event {event_.id} updated at {event_.updated_at} by {user.email}",
     )
 
     is_liked = False
@@ -512,7 +486,7 @@ def update_event(db: Session, current_user_id: Optional[int], event_id: int, eve
         updated_at=event_.updated_at,
         types=all_types,
         pictures=all_pics,
-        is_liked=is_liked
+        is_liked=is_liked,
     )
 
 
@@ -545,7 +519,7 @@ def delete_event(db: Session, event_id: int, current_user: User) -> dict[str, st
         user.id,
         LogLevelEnum.INFO,
         ActionEnum.EVENT_DELETED,
-        f"Event {event.id} deleted at {event.created_at} by {user.email}"
+        f"Event {event.id} deleted at {event.created_at} by {user.email}",
     )
     return JSONResponse(content={"msg": "event supprimé"})
 
@@ -554,7 +528,7 @@ def update_event_pictures(
     db: Session,
     event_pictures: list[EventPicture],
     update_pictures: list[EventPictureSchema],
-    event_id: int
+    event_id: int,
 ) -> None:
     """
     Updates the pictures of an event by comparing existing pictures with the updated ones.
@@ -586,7 +560,7 @@ def get_events_by_profile(
     current_user_id: Optional[int],
     profile_id: int,
     offset: int,
-    limit: int
+    limit: int,
 ) -> EventListSchemaResponse:
     """
     Récupère les événements associés à un profil spécifique avec une pagination.
@@ -603,12 +577,7 @@ def get_events_by_profile(
     Returns:
         EventListSchemaResponse: Un objet contenant la liste des événements récupérés et le nombre total d'événements.
     """
-    events = event_service.get_events_by_profile(
-        db,
-        profile_id,
-        offset,
-        limit
-    )
+    events = event_service.get_events_by_profile(db, profile_id, offset, limit)
 
     all_events = []
 
@@ -616,7 +585,7 @@ def get_events_by_profile(
         profile = profile_service.get_profile(db, event.profile_id)
         user = user_service.get_user(db, profile.user_id)
 
-        profile =  ProfileRestrictedSchemaResponse(
+        profile = ProfileRestrictedSchemaResponse(
             id=profile.id,
             first_name=profile.first_name,
             last_name=profile.last_name,
@@ -624,25 +593,17 @@ def get_events_by_profile(
             nb_like=profile.nb_like,
             email=user.email,
             created_at=profile.created_at,
-            )
+        )
 
         all_types = []
 
         for type_ in event.types:
-            all_types.append(
-                TypeSchemaResponse(
-                    id=type_.id,
-                    type=type_.type
-                )
-            )
+            all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
         event_pictures = []
         for picture in event.pictures:
             event_pictures.append(
-                EventPictureSchemaResponse(
-                    id=picture.id,
-                    photo=picture.photo
-                )
+                EventPictureSchemaResponse(id=picture.id, photo=picture.photo)
             )
 
         event_address = AddressSchemaResponse(
@@ -651,7 +612,7 @@ def get_events_by_profile(
             zipcode=event.address.zipcode,
             number=event.address.number,
             street=event.address.street,
-            country=event.address.country
+            country=event.address.country,
         )
         is_liked = False
         if current_user_id:
@@ -679,7 +640,7 @@ def get_events_by_profile(
                 updated_at=event.updated_at,
                 types=all_types,
                 pictures=event_pictures,
-                is_liked=is_liked
+                is_liked=is_liked,
             )
         )
 
@@ -688,7 +649,5 @@ def get_events_by_profile(
         profile_id=profile_id,
     )
     return EventListSchemaResponse(
-        total=total_events,
-        count=len(all_events),
-        data=all_events
+        total=total_events, count=len(all_events), data=all_events
     )

@@ -1,8 +1,10 @@
 """This file contains the address repository"""
+
 from sqlalchemy.orm import Session
 from models.address_model import Address
 
-def add_new_address(db: Session, address: Address)->None:
+
+def add_new_address(db: Session, address: Address) -> None:
     """
     Adding a new address object in database
 
@@ -12,7 +14,8 @@ def add_new_address(db: Session, address: Address)->None:
     """
     db.add(address)
 
-def commit_address(db: Session)->None:
+
+def commit_address(db: Session) -> None:
     """
     Commiting the changes in the database
 
@@ -21,7 +24,8 @@ def commit_address(db: Session)->None:
     """
     db.commit()
 
-def refresh_address(db: Session, address: Address)->None:
+
+def refresh_address(db: Session, address: Address) -> None:
     """
     Refreshing the changes from the database
 
@@ -31,7 +35,8 @@ def refresh_address(db: Session, address: Address)->None:
     """
     db.refresh(address)
 
-def delete_address(db: Session, address: Address)->None:
+
+def delete_address(db: Session, address: Address) -> None:
     """
     Deleting an address object from the database.
 
@@ -41,7 +46,8 @@ def delete_address(db: Session, address: Address)->None:
     """
     db.delete(address)
 
-def get_address_by_id(db: Session, address_id: int)->Address:
+
+def get_address_by_id(db: Session, address_id: int) -> Address:
     """
     Fetching an address by its id from the database
 

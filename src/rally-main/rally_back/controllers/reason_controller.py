@@ -1,18 +1,24 @@
 """
 This file contains the controller related to reasons
 """
+
 from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
 from schemas.request_schemas.reason_schema import ReasonSchema
-from schemas.response_schemas.reason_schema_response import ReasonSchemaResponse, ReasonListSchemaResponse
+from schemas.response_schemas.reason_schema_response import (
+    ReasonSchemaResponse,
+    ReasonListSchemaResponse,
+)
 from services import action_log_service, reason_service
 from enums.log_level import LogLevelEnum
 from enums.action import ActionEnum
 from models.user_model import User
 
 
-def create_reason(db: Session, reason: ReasonSchema, current_user: User) -> ReasonSchemaResponse:
+def create_reason(
+    db: Session, reason: ReasonSchema, current_user: User
+) -> ReasonSchemaResponse:
     """
     Creates a new reason in the database.
 
@@ -33,15 +39,15 @@ def create_reason(db: Session, reason: ReasonSchema, current_user: User) -> Reas
         current_user.id,
         LogLevelEnum.INFO,
         ActionEnum.REASON_CREATED,
-        f"User {current_user.id} added reason {reason.id} at {datetime.now()} by {current_user.email}"
+        f"User {current_user.id} added reason {reason.id} at {datetime.now()} by {current_user.email}",
     )
 
-    return ReasonSchemaResponse(
-        id=reason.id,
-        reason=reason.reason
-    )
+    return ReasonSchemaResponse(id=reason.id, reason=reason.reason)
 
-def get_reasons(db: Session, limit: Optional[int], offset: Optional[int]) -> ReasonListSchemaResponse:
+
+def get_reasons(
+    db: Session, limit: Optional[int], offset: Optional[int]
+) -> ReasonListSchemaResponse:
     """
     Retrieves a list of reasons from the database.
 
@@ -58,17 +64,13 @@ def get_reasons(db: Session, limit: Optional[int], offset: Optional[int]) -> Rea
     reasons = reason_service.get_reasons(db, limit, offset)
     all_reasons = []
     for reason in reasons:
-        all_reasons.append(
-            ReasonSchemaResponse(
-                id=reason.id,
-                reason=reason.reason
-            )
-        )
+        all_reasons.append(ReasonSchemaResponse(id=reason.id, reason=reason.reason))
     return ReasonListSchemaResponse(
         count=len(all_reasons),
         total=reason_service.get_reasons_total_count(db),
-        data=all_reasons
+        data=all_reasons,
     )
+
 
 def get_reason_by_id(db: Session, reason_id: int) -> ReasonSchemaResponse:
     """
@@ -84,10 +86,8 @@ def get_reason_by_id(db: Session, reason_id: int) -> ReasonSchemaResponse:
     This function fetches the reason by the given ID and returns it in a response schema.
     """
     reason = reason_service.get_reason_by_id(db, reason_id)
-    return ReasonSchemaResponse(
-        id=reason.id,
-        reason=reason.reason
-    )
+    return ReasonSchemaResponse(id=reason.id, reason=reason.reason)
+
 
 def delete_reason(db: Session, reason_id: int, current_user: User) -> dict[str, str]:
     """
@@ -110,7 +110,7 @@ def delete_reason(db: Session, reason_id: int, current_user: User) -> dict[str, 
         current_user.id,
         LogLevelEnum.INFO,
         ActionEnum.REASON_DELETED,
-        f"User {current_user.id} releted reason {reason_id} at {datetime.now()} by {current_user.email}"
+        f"User {current_user.id} releted reason {reason_id} at {datetime.now()} by {current_user.email}",
     )
 
     return {"msg": "supprime"}

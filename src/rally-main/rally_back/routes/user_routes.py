@@ -13,12 +13,13 @@ router = APIRouter(
     tags=["user"],
 )
 
+
 # 📌 1️⃣ Récupérer un utilisateur par ID
 @router.get("/{user_id}", response_model=UserResponse, status_code=200)
 def get_user(
     user_id: int,
     _: User = Depends(authent_controller.get_current_admin_or_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> UserResponse:
     """Retrieve a user by their ID. Accessible by an admin or super admin."""
     return user_controller.get_user(db, user_id)
@@ -31,7 +32,7 @@ def search_users(
     limit: int = Query(5),
     search: str = Query(None, description="Search for users by email."),
     _: User = Depends(authent_controller.get_current_admin_or_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> UserListResponse:
     """Search for users by their email. Accessible by an admin or super admin."""
     return user_controller.search_users(db, search, offset, limit)
@@ -43,7 +44,7 @@ def update_user(
     user_id: int,
     user: UserSchema,
     _: User = Depends(authent_controller.get_current_admin_or_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> UserResponse:
     """Update a user's details. Accessible by an admin or super admin."""
     return user_controller.update_user(db, user, user_id)
@@ -54,7 +55,7 @@ def update_user(
 def toggle_user_planner(
     user_id: int,
     _: User = Depends(authent_controller.get_current_admin_or_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> UserResponse:
     """Toggle the 'is_planner' status of a user. Accessible by an admin or super admin."""
     return user_controller.toggle_is_planner(db, user_id)
@@ -65,7 +66,7 @@ def toggle_user_planner(
 def ban_user(
     user_id: int,
     _: User = Depends(authent_controller.get_current_admin_or_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> dict[str, str]:
     """Delete or ban a user by their ID. Accessible by an admin or super admin."""
     return user_controller.delete_user(db, user_id)

@@ -1,9 +1,10 @@
 """This file contains the event picture repository"""
+
 from sqlalchemy.orm import Session
 from models.event_picture_model import EventPicture
 
 
-def add_new_event_picture(db: Session, event_picture: EventPicture)->None:
+def add_new_event_picture(db: Session, event_picture: EventPicture) -> None:
     """
     This function adds a new event picture to the database.
 
@@ -12,7 +13,8 @@ def add_new_event_picture(db: Session, event_picture: EventPicture)->None:
     """
     db.add(event_picture)
 
-def commit_event_picture(db: Session)->None:
+
+def commit_event_picture(db: Session) -> None:
     """
     This function commits an event picture to the database.
 
@@ -20,7 +22,8 @@ def commit_event_picture(db: Session)->None:
     """
     db.commit()
 
-def refresh_event_picture(db: Session, event_picture: EventPicture)->None:
+
+def refresh_event_picture(db: Session, event_picture: EventPicture) -> None:
     """
     This function updates the event picture in the database.
 
@@ -29,7 +32,8 @@ def refresh_event_picture(db: Session, event_picture: EventPicture)->None:
     """
     db.refresh(event_picture)
 
-def get_event_picture_by_id(db: Session, event_picture_id: int)->EventPicture:
+
+def get_event_picture_by_id(db: Session, event_picture_id: int) -> EventPicture:
     """
     This function retrieves an event picture by its ID from a database session.
 
@@ -39,7 +43,8 @@ def get_event_picture_by_id(db: Session, event_picture_id: int)->EventPicture:
     """
     return db.query(EventPicture).filter(EventPicture.id == event_picture_id).first()
 
-def get_all_event_pictures(db: Session)->list[EventPicture]:
+
+def get_all_event_pictures(db: Session) -> list[EventPicture]:
     """
     This function retrieves all event pictures from the database.
 
@@ -47,7 +52,8 @@ def get_all_event_pictures(db: Session)->list[EventPicture]:
     """
     return db.query(EventPicture).all()
 
-def get_event_pictures_from_event_id(db: Session, event_id: int)->list[EventPicture]:
+
+def get_event_pictures_from_event_id(db: Session, event_id: int) -> list[EventPicture]:
     """
     This function retrieves a list of event pictures associated with a specific event ID from a database
     session.
@@ -57,7 +63,8 @@ def get_event_pictures_from_event_id(db: Session, event_id: int)->list[EventPict
     """
     return db.query(EventPicture).filter(EventPicture.event_id == event_id).all()
 
-def get_first_picture_of_event(db: Session, event_id: int)->EventPicture:
+
+def get_first_picture_of_event(db: Session, event_id: int) -> EventPicture:
     """
     This function retrieves the first picture associated with a specific event from the database.
 
@@ -67,7 +74,8 @@ def get_first_picture_of_event(db: Session, event_id: int)->EventPicture:
     """
     return db.query(EventPicture).filter(EventPicture.event_id == event_id).first()
 
-def delete_event_picture(db: Session, event_picture: EventPicture)->None:
+
+def delete_event_picture(db: Session, event_picture: EventPicture) -> None:
     """
     This function deletes an event picture from the database.
 
@@ -76,7 +84,8 @@ def delete_event_picture(db: Session, event_picture: EventPicture)->None:
     """
     db.delete(event_picture)
 
-def get_picture_by_name(db: Session, name: str)->EventPicture:
+
+def get_picture_by_name(db: Session, name: str) -> EventPicture:
     """
     This function retrieves an EventPicture from the database based on the provided name.
 

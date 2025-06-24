@@ -1,4 +1,5 @@
 """This file contains the action log repository"""
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -18,6 +19,7 @@ def add_action_log(db: Session, action_log: ActionLog):
     """
     db.add(action_log)
 
+
 def commit_action_log(db: Session):
     """
     Commit the changes in the database
@@ -26,6 +28,7 @@ def commit_action_log(db: Session):
         db (Session): The database session used to interact with the database.
     """
     db.commit()
+
 
 def refresh_action_log(db: Session, action_log: ActionLog):
     """
@@ -37,6 +40,7 @@ def refresh_action_log(db: Session, action_log: ActionLog):
     """
     db.refresh(action_log)
 
+
 def get_action_logs_with_filters(
     db: Session,
     date: Optional[datetime],
@@ -44,7 +48,7 @@ def get_action_logs_with_filters(
     user_id: Optional[int],
     log_type: Optional[LogLevelEnum],
     offset: int,
-    limit: int
+    limit: int,
 ) -> list[ActionLog]:
     """
     Returns all the action logs from the database according to filters.
@@ -76,6 +80,7 @@ def get_action_logs_with_filters(
         query = query.filter(ActionLog.log_type == log_type)
 
     return query.order_by(ActionLog.date.desc()).offset(offset).limit(limit).all()
+
 
 def get_action_logs_with_filters_total_count(
     db: Session,
@@ -112,4 +117,3 @@ def get_action_logs_with_filters_total_count(
         query = query.filter(ActionLog.log_type == log_type)
 
     return query.order_by(ActionLog.date.desc()).count()
-

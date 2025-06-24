@@ -1,10 +1,14 @@
 """This file contains the profile model for sqlalchemy"""
+
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from database.db import Base
+
+
 class Profile(Base):
     """profile table in db"""
+
     __tablename__ = "profiles"
 
     id = Column(Integer, primary_key=True, index=True)

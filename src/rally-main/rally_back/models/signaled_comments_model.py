@@ -1,12 +1,15 @@
 """This file contains the signaled comments model for sqlalchemy"""
+
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from database.db import Base
 
+
 class SignaledComment(Base):
     """signaled comments table in db"""
+
     __tablename__ = "signaled_comments"
 
     id = Column(Integer, primary_key=True, index=True)

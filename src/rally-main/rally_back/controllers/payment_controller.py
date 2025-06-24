@@ -1,13 +1,21 @@
 """
 This file contains the controller related to payments
 """
+
 import os
 from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 import stripe
-from services import event_service, payment_service, profile_service, registration_service, user_service, email_service
+from services import (
+    event_service,
+    payment_service,
+    profile_service,
+    registration_service,
+    user_service,
+    email_service,
+)
 from models.user_model import User
 from enums.payment_status import PaymentStatusEnum
 from schemas.response_schemas.payment_schema_response import (
@@ -15,12 +23,15 @@ from schemas.response_schemas.payment_schema_response import (
     PaymentListSchemaResponse,
     PaymentRestrictedSchemaResponse,
     PaymentRestrictedListSchemaResponse,
-    PaymentRefundedSchemaResponse
+    PaymentRefundedSchemaResponse,
 )
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-def create_check_out_session(db: Session, event_id: int, current_user: User)->dict[str, str]:
+
+def create_check_out_session(
+    db: Session, event_id: int, current_user: User
+) -> dict[str, str]:
     """
     Creates a checkout session for a user to pay for event registration.
 
@@ -56,7 +67,9 @@ def create_check_out_session(db: Session, event_id: int, current_user: User)->di
     registration = registration_service.get_registration(db, current_user.id, event.id)
     if registration:
         raise HTTPException(status_code=403, detail="User deja inscrit pour cet event")
-    registration = registration_service.register_for_event(db, current_user.id, event_id)
+    registration = registration_service.register_for_event(
+        db, current_user.id, event_id
+    )
 
     try:
         if event.price > 0:
@@ -69,10 +82,12 @@ def create_check_out_session(db: Session, event_id: int, current_user: User)->di
                 "event_id": str(event.id),
                 "brut_amount": str(event.price),
                 "fee": str(commission_fee),
-                "registration_id": str(registration.id)
+                "registration_id": str(registration.id),
             }
 
-            checkcout_session = payment_service.create_checkout_session(amount, event.title, event.id, commission_fee, metadata, user.account_id)
+            checkcout_session = payment_service.create_checkout_session(
+                amount, event.title, event.id, commission_fee, metadata, user.account_id
+            )
             payment_service.create_payment(
                 db,
                 event.id,
@@ -82,16 +97,21 @@ def create_check_out_session(db: Session, event_id: int, current_user: User)->di
                 (event.price * 0.05),
                 event.price,
                 checkcout_session.id,
-                checkcout_session.payment_intent
+                checkcout_session.payment_intent,
             )
             return {"session_url": checkcout_session.url}
-        registration_service.update_registration_status(db, PaymentStatusEnum.FREE, registration.id)
+        registration_service.update_registration_status(
+            db, PaymentStatusEnum.FREE, registration.id
+        )
         return {"registration": "ok"}
     except Exception as e:
         registration_service.delete_registration(db, current_user.id, event.id)
-        raise HTTPException(status_code=500, detail=f"Error creating checkout session: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Error creating checkout session: {str(e)}"
+        ) from e
 
-def get_onboarding_url(db: Session, current_user: User)->dict[str, str]:
+
+def get_onboarding_url(db: Session, current_user: User) -> dict[str, str]:
     """
     Creates an onboarding URL for a user to complete their Stripe account setup.
 
@@ -114,6 +134,7 @@ def get_onboarding_url(db: Session, current_user: User)->dict[str, str]:
     # user_service.update_stripe_account(db, current_user.id, account["id"])
     return {"onboarding_url": onboarding_url}
 
+
 def handle_webhooks(event: dict, db: Session):
     """
     Handles incoming Stripe webhook events and processes them.
@@ -130,6 +151,7 @@ def handle_webhooks(event: dict, db: Session):
         The result of processing the webhook event through the `payment_service.handle_stripe_webhook_event` method.
     """
     return payment_service.handle_stripe_webhook_event(event, db)
+
 
 def get_payments(
     db: Session,
@@ -148,7 +170,7 @@ def get_payments(
     date_apres: Optional[datetime],
     date_avant: Optional[datetime],
     offset: int,
-    limit: int
+    limit: int,
 ) -> PaymentListSchemaResponse:
     """
     Retrieves a list of payments based on various filters and pagination parameters.
@@ -199,7 +221,7 @@ def get_payments(
         date_apres,
         date_avant,
         offset,
-        limit
+        limit,
     )
 
     all_payments = []
@@ -220,7 +242,7 @@ def get_payments(
                 stripe_session_id=payment.stripe_session_id,
                 stripe_payment_intent_id=payment.stripe_payment_intent_id,
                 status=payment.status,
-                created_at=payment.created_at
+                created_at=payment.created_at,
             )
         )
 
@@ -239,10 +261,12 @@ def get_payments(
         stripe_payment_intent_id,
         status,
         date_apres,
-        date_avant
+        date_avant,
     )
 
-    return PaymentListSchemaResponse(count=len(all_payments), data=all_payments, total=total)
+    return PaymentListSchemaResponse(
+        count=len(all_payments), data=all_payments, total=total
+    )
 
 
 def get_payments_for_user(
@@ -256,7 +280,7 @@ def get_payments_for_user(
     date_apres: Optional[datetime],
     date_avant: Optional[datetime],
     offset: int,
-    limit: int
+    limit: int,
 ) -> PaymentRestrictedListSchemaResponse:
     """
     Retrieves a list of payments for the current user based on various filters and pagination parameters.
@@ -295,7 +319,7 @@ def get_payments_for_user(
         date_apres,
         date_avant,
         offset,
-        limit
+        limit,
     )
 
     all_payments = []
@@ -312,14 +336,18 @@ def get_payments_for_user(
                 organizer_email=payment.organizer_email,
                 brut_amount=payment.brut_amount,
                 status=payment.status,
-                created_at=payment.created_at
+                created_at=payment.created_at,
             )
         )
 
-    return PaymentRestrictedListSchemaResponse(count=len(all_payments), data=all_payments)
+    return PaymentRestrictedListSchemaResponse(
+        count=len(all_payments), data=all_payments
+    )
 
 
-def refund_payment_controller(db: Session, current_user_id: int, event_id: int)->PaymentRefundedSchemaResponse:
+def refund_payment_controller(
+    db: Session, current_user_id: int, event_id: int
+) -> PaymentRefundedSchemaResponse:
     """
     Refunds a payment for a given event registration.
 
@@ -338,7 +366,9 @@ def refund_payment_controller(db: Session, current_user_id: int, event_id: int)-
 
     if payment.buyer_id != current_user_id:
         print("TATATATATAT", payment.buyer_id, current_user_id)
-        raise HTTPException(status_code=403, detail="Tu ne peux pas rembourser ce paiement")
+        raise HTTPException(
+            status_code=403, detail="Tu ne peux pas rembourser ce paiement"
+        )
 
     if payment.status == PaymentStatusEnum.REFUNDED:
         raise HTTPException(status_code=400, detail="Paiement déjà remboursé")
@@ -346,7 +376,9 @@ def refund_payment_controller(db: Session, current_user_id: int, event_id: int)-
     try:
         refund = payment_service.refund_full_payment(payment.stripe_payment_intent_id)
 
-        payment_service.change_payment_status(db, PaymentStatusEnum.REFUNDED, payment.id, refund["id"])
+        payment_service.change_payment_status(
+            db, PaymentStatusEnum.REFUNDED, payment.id, refund["id"]
+        )
         registration_service.delete_registration(db, current_user_id, event_id)
 
         payment_service.send_refund_notification(db, payment.id)
@@ -355,5 +387,6 @@ def refund_payment_controller(db: Session, current_user_id: int, event_id: int)-
         return PaymentRefundedSchemaResponse(refunded=True)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur de remboursement : {str(e)}")
-
+        raise HTTPException(
+            status_code=500, detail=f"Erreur de remboursement : {str(e)}"
+        )

@@ -1,18 +1,24 @@
 """
 This file contains the controller related to types
 """
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
 from services import action_log_service, type_service
 from schemas.request_schemas.type_schema import TypeSchema
-from schemas.response_schemas.type_schema_response import TypeSchemaResponse, TypeListSchemaResponse
+from schemas.response_schemas.type_schema_response import (
+    TypeSchemaResponse,
+    TypeListSchemaResponse,
+)
 from enums.log_level import LogLevelEnum
 from enums.action import ActionEnum
 from models.user_model import User
 
 
-def create_type(db: Session, type_: TypeSchema, current_user: User) -> TypeSchemaResponse:
+def create_type(
+    db: Session, type_: TypeSchema, current_user: User
+) -> TypeSchemaResponse:
     """
     Creates a new event type in the system and logs the action performed by the current user.
 
@@ -36,13 +42,11 @@ def create_type(db: Session, type_: TypeSchema, current_user: User) -> TypeSchem
         current_user.id,
         LogLevelEnum.INFO,
         ActionEnum.TYPE_CREATED,
-        f"User {current_user.id} added type {new_type.id} at {datetime.now()} by {current_user.email}"
+        f"User {current_user.id} added type {new_type.id} at {datetime.now()} by {current_user.email}",
     )
 
-    return TypeSchemaResponse(
-        id=new_type.id,
-        type=new_type.type
-    )
+    return TypeSchemaResponse(id=new_type.id, type=new_type.type)
+
 
 def get_type_by_id(db: Session, type_id: int) -> TypeSchemaResponse:
     """
@@ -59,12 +63,12 @@ def get_type_by_id(db: Session, type_id: int) -> TypeSchemaResponse:
         TypeSchemaResponse: A response object containing the ID and name of the event type.
     """
     type_ = type_service.get_type_by_id(db, type_id)
-    return TypeSchemaResponse(
-        id=type_.id,
-        type=type_.type
-    )
+    return TypeSchemaResponse(id=type_.id, type=type_.type)
 
-def get_types(db: Session, limit: Optional[int], offset: Optional[int]) -> TypeListSchemaResponse:
+
+def get_types(
+    db: Session, limit: Optional[int], offset: Optional[int]
+) -> TypeListSchemaResponse:
     """
     Retrieves all event types from the database.
 
@@ -83,17 +87,12 @@ def get_types(db: Session, limit: Optional[int], offset: Optional[int]) -> TypeL
     all_types = []
 
     for type_ in types:
-        all_types.append(
-            TypeSchemaResponse(
-                id=type_.id,
-                type=type_.type
-            )
-        )
+        all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
     return TypeListSchemaResponse(
         count=len(all_types),
         total=type_service.get_types_total_count(db),
-        data=all_types
+        data=all_types,
     )
 
 
@@ -119,7 +118,7 @@ def delete_type(db: Session, type_id: int, current_user: User) -> dict[str, str]
         current_user.id,
         LogLevelEnum.INFO,
         ActionEnum.TYPE_DELETED,
-        f"User {current_user.id} deleted type {type_id} at {datetime.now()} by {current_user.email}"
+        f"User {current_user.id} deleted type {type_id} at {datetime.now()} by {current_user.email}",
     )
 
     return {"msg": "deleted"}

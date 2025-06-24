@@ -1,6 +1,7 @@
 """
 This file contains the controller related to signaled signaled users
 """
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -8,20 +9,23 @@ from schemas.request_schemas.signaled_user_schema import SignaledUserCurrentUSer
 from schemas.response_schemas.reason_schema_response import ReasonSchemaResponse
 from schemas.response_schemas.signaled_user_schema_response import (
     SignaledUserSchemaResponse,
-    SignaledUserListSchemaResponse
+    SignaledUserListSchemaResponse,
 )
 from services import (
     action_log_service,
     moderation_service,
     reason_service,
     signaled_user_service,
-    user_service
+    user_service,
 )
 from enums.log_level import LogLevelEnum
 from enums.action import ActionEnum
 from models.user_model import User
 
-def delete_signaled_user(db: Session, signaled_user_id: int, current_user: User, ban: bool) -> dict[str, str]:
+
+def delete_signaled_user(
+    db: Session, signaled_user_id: int, current_user: User, ban: bool
+) -> dict[str, str]:
     """
     Deletes a signaled user, either banning or unbanning them, and logs the action performed
     by the current user.
@@ -42,7 +46,7 @@ def delete_signaled_user(db: Session, signaled_user_id: int, current_user: User,
             current_user.id,
             LogLevelEnum.WARNING,
             ActionEnum.USER_BANNED,
-            f"Profile {current_user.id} banned user {signaled_user_id} at {datetime.now()} by {current_user.email}"
+            f"Profile {current_user.id} banned user {signaled_user_id} at {datetime.now()} by {current_user.email}",
         )
     else:
         action_log_service.create_action_log(
@@ -50,12 +54,15 @@ def delete_signaled_user(db: Session, signaled_user_id: int, current_user: User,
             current_user.id,
             LogLevelEnum.INFO,
             ActionEnum.USER_UNSIGNALED,
-            f"Profile {current_user.id} unbanned user {id} at {datetime.now()} by {current_user.email}"
+            f"Profile {current_user.id} unbanned user {id} at {datetime.now()} by {current_user.email}",
         )
 
     return {"msg": "delete"}
 
-def update_status_signaled_user(db: Session, signaled_user_id: int, status: str) -> SignaledUserSchemaResponse:
+
+def update_status_signaled_user(
+    db: Session, signaled_user_id: int, status: str
+) -> SignaledUserSchemaResponse:
     """
     Updates the status of a signaled user and returns a response schema with the updated details.
 
@@ -73,7 +80,9 @@ def update_status_signaled_user(db: Session, signaled_user_id: int, status: str)
         including information such as the user's ID, the ID of the user who signaled them, the reason for the signal,
         and the updated status.
     """
-    signaled_user = signaled_user_service.update_status_signaled_user(db, signaled_user_id, status)
+    signaled_user = signaled_user_service.update_status_signaled_user(
+        db, signaled_user_id, status
+    )
     user = user_service.get_user(db, signaled_user.user_signaled_id)
 
     signaled_by = user_service.get_user(db, signaled_user.user_id)
@@ -84,15 +93,13 @@ def update_status_signaled_user(db: Session, signaled_user_id: int, status: str)
         id=signaled_user.id,
         user_signaled_id=user.id,
         user_signaled_email=user.email,
-        reason=ReasonSchemaResponse(
-            id=reason.id,
-            reason=reason.reason
-        ),
+        reason=ReasonSchemaResponse(id=reason.id, reason=reason.reason),
         signaled_by_id=signaled_by.id,
         signaled_by_email=signaled_by.email,
         created_at=signaled_user.created_at,
-        status=signaled_user.status
+        status=signaled_user.status,
     )
+
 
 def get_signaled_user_by_filters(
     db: Session,
@@ -104,7 +111,7 @@ def get_signaled_user_by_filters(
     email_user: Optional[str],
     email_signaled_user: Optional[str],
     offset: int,
-    limit: int
+    limit: int,
 ) -> SignaledUserListSchemaResponse:
     """
     Retrieves a list of signaled users filtered by various optional criteria, such as date, user ID,
@@ -137,7 +144,7 @@ def get_signaled_user_by_filters(
         email_user,
         email_signaled_user,
         offset,
-        limit
+        limit,
     )
     total = signaled_user_service.get_signaled_users_by_filters_total_count(
         db,
@@ -147,7 +154,7 @@ def get_signaled_user_by_filters(
         signaled_user_id,
         status,
         email_user,
-        email_signaled_user
+        email_signaled_user,
     )
 
     all_signaled_users = []
@@ -165,27 +172,21 @@ def get_signaled_user_by_filters(
                 id=signaled_user.id,
                 user_signaled_id=user.id,
                 user_signaled_email=user.email,
-                reason=ReasonSchemaResponse(
-                    id=reason.id,
-                    reason=reason.reason
-                ),
+                reason=ReasonSchemaResponse(id=reason.id, reason=reason.reason),
                 signaled_by_id=signaled_by.id,
                 signaled_by_email=signaled_by.email,
                 created_at=signaled_user.created_at,
-                status=signaled_user.status
+                status=signaled_user.status,
             )
         )
 
     return SignaledUserListSchemaResponse(
-        total=total,
-        count=len(all_signaled_users),
-        data=all_signaled_users
+        total=total, count=len(all_signaled_users), data=all_signaled_users
     )
 
+
 def create_signaled_user_by_current(
-    db: Session,
-    signaled_user: SignaledUserCurrentUSerSchema,
-    current_user: User
+    db: Session, signaled_user: SignaledUserCurrentUSerSchema, current_user: User
 ) -> bool:
     """
     Creates a new signaled user record in the database, initiated by the current user,
@@ -210,5 +211,5 @@ def create_signaled_user_by_current(
         db=db,
         signaled_user_id=signaled_user.user_signaled_id,
         by_user_id=current_user.id,
-        reason_id=signaled_user.reason_id
+        reason_id=signaled_user.reason_id,
     )

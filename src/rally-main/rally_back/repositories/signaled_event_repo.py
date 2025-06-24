@@ -1,4 +1,5 @@
 """This file contains the signaled event repository"""
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session, aliased
@@ -8,33 +9,41 @@ from models.user_model import User
 from models.event_model import Event
 from models.profile_model import Profile
 
+
 def add_signaled_event(db: Session, signaled_event: SignaledEvent) -> None:
     """Add a new signaled event to the database."""
     db.add(signaled_event)
+
 
 def commit_signaled_events(db: Session) -> None:
     """Commit the current transaction for signaled events."""
     db.commit()
 
+
 def refresh_signaled_event(db: Session, signaled_event: SignaledEvent) -> None:
     """Refresh the state of a signaled event from the database."""
     db.refresh(signaled_event)
+
 
 def delete_signaled_event(db: Session, signaled_event: SignaledEvent) -> None:
     """Delete a signaled event from the database."""
     db.delete(signaled_event)
 
+
 def get_signaled_events(db: Session) -> list[SignaledEvent]:
     """Retrieve all signaled events from the database."""
     return db.query(SignaledEvent).all()
+
 
 def get_signaled_events_by_event_id(db: Session, event_id: int) -> list[SignaledEvent]:
     """Retrieve signaled events associated with a specific event ID."""
     return db.query(SignaledEvent).filter(SignaledEvent.event_id == event_id).all()
 
+
 def get_signaled_event_by_id(db: Session, signaled_event_id: int) -> SignaledEvent:
     """Retrieve a single signaled event by its ID."""
     return db.query(SignaledEvent).filter(SignaledEvent.id == signaled_event_id).first()
+
 
 def get_signaled_events_filters(
     db: Session,
@@ -46,7 +55,7 @@ def get_signaled_events_filters(
     email_user: Optional[str],
     email_event_user: Optional[str],
     offset: int,
-    limit: int
+    limit: int,
 ) -> list[SignaledEvent]:
     """Retrieve signaled events based on optional filters like date, reason, user, event, status or emails."""
     query = db.query(SignaledEvent)
@@ -73,18 +82,24 @@ def get_signaled_events_filters(
     user_alias = aliased(User)
 
     if email_user is not None:
-        query = query.join(user_alias, SignaledEvent.user).filter(user_alias.email == email_user)
+        query = query.join(user_alias, SignaledEvent.user).filter(
+            user_alias.email == email_user
+        )
 
     if email_event_user is not None:
         query = (
-            query
-            .join(event_alias, SignaledEvent.event)
+            query.join(event_alias, SignaledEvent.event)
             .join(profile_alias, event_alias.profile)
             .join(event_owner_alias, profile_alias.user)
             .filter(event_owner_alias.email == email_event_user)
         )
 
-    return query.order_by(SignaledEvent.created_at.desc()).offset(offset).limit(limit).all()
+    return (
+        query.order_by(SignaledEvent.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 def get_signaled_events_filters_total_count(
@@ -95,7 +110,7 @@ def get_signaled_events_filters_total_count(
     event_id: Optional[int],
     status: Optional[str],
     email_user: Optional[str],
-    email_event_user: Optional[str]
+    email_event_user: Optional[str],
 ) -> int:
     """Retrieve the count of signaled events based on optional filters like date, reason, user, event, status or emails."""
     query = db.query(SignaledEvent)
@@ -122,12 +137,13 @@ def get_signaled_events_filters_total_count(
     user_alias = aliased(User)
 
     if email_user is not None:
-        query = query.join(user_alias, SignaledEvent.user).filter(user_alias.email == email_user)
+        query = query.join(user_alias, SignaledEvent.user).filter(
+            user_alias.email == email_user
+        )
 
     if email_event_user is not None:
         query = (
-            query
-            .join(event_alias, SignaledEvent.event)
+            query.join(event_alias, SignaledEvent.event)
             .join(profile_alias, event_alias.profile)
             .join(event_owner_alias, profile_alias.user)
             .filter(event_owner_alias.email == email_event_user)

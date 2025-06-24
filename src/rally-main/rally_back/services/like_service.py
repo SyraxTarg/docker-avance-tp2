@@ -17,14 +17,12 @@ def like_event(db: Session, profile_id: int, event_id: int) -> Like:
     event = event_service.get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Event not found"
         )
     profile = profile_service.get_profile(db, event.profile_id) if event else None
     if not profile:
         raise ProfileNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found"
         )
 
     like = Like(profile_id=profile_id, event_id=event_id)
@@ -57,21 +55,18 @@ def unlike_event(db: Session, profile_id: int, event_id: int) -> bool:
 
     if not like:
         raise LikeNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Like not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Like not found"
         )
 
     event = event_service.get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Event not found"
         )
     profile = profile_service.get_profile(db, profile_id) if event else None
     if not profile:
         raise ProfileNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found"
         )
 
     like_repo.delete_like(db, like)
@@ -89,18 +84,22 @@ def unlike_event(db: Session, profile_id: int, event_id: int) -> bool:
 
     return True
 
+
 def get_likes(db: Session, offset: int, limit: int) -> list[Like]:
     """used to get all likes"""
     return like_repo.get_likes(db, offset, limit)
 
-def get_likes_from_event(db: Session, event_id: int)->list[Like]:
+
+def get_likes_from_event(db: Session, event_id: int) -> list[Like]:
     """used to get all likes from an event"""
     return like_repo.get_likes_from_event(db, event_id)
 
-def get_likes_count_from_event(db: Session, event_id: int)->list[Like]:
+
+def get_likes_count_from_event(db: Session, event_id: int) -> list[Like]:
     """used to get the count of all likes from an event"""
     return like_repo.get_likes_count_from_event(db, event_id)
 
-def get_likes_from_profile(db: Session, profile_id: int)->list[Like]:
+
+def get_likes_from_profile(db: Session, profile_id: int) -> list[Like]:
     """used to get all likes from a profile"""
     return like_repo.get_likes_from_profile(db, profile_id)

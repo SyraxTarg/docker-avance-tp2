@@ -1,4 +1,5 @@
 """This file contains the imports models"""
+
 from . import action_logs_model
 from . import address_model
 from . import association_model

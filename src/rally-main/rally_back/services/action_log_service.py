@@ -10,13 +10,12 @@ from repositories import action_log_repo
 from errors import UserNotFoundError
 
 
-
 def create_action_log(
     db: Session,
     user_id: int,
     log_type: LogLevelEnum,
     action_type: ActionEnum,
-    description: str
+    description: str,
 ) -> ActionLog:
     """
     Creates a new action log entry in the database.
@@ -42,7 +41,7 @@ def create_action_log(
         log_type=log_type,
         action_type=action_type,
         description=description,
-        date=datetime.now()
+        date=datetime.now(),
     )
 
     action_log_repo.add_action_log(db, new_action_log)
@@ -57,7 +56,7 @@ def get_action_logs(
     user_id: Optional[int],
     log_type: Optional[LogLevelEnum],
     offset: int,
-    limit: int
+    limit: int,
 ) -> list[ActionLog]:
     """
     Retrieves a list of action logs from the database with optional filters.
@@ -75,16 +74,10 @@ def get_action_logs(
     - list[ActionLog]: A list of action logs that match the provided filters.
     """
     return action_log_repo.get_action_logs_with_filters(
-        db,
-        date,
-        action_type,
-        user_id,
-        log_type,
-        offset,
-        limit
+        db, date, action_type, user_id, log_type, offset, limit
     )
-    
-    
+
+
 def get_action_logs_count(
     db: Session,
     date: Optional[datetime],
@@ -103,10 +96,5 @@ def get_action_logs_count(
     - log_type (Optional[LogLevelEnum]): Filter logs by log type (optional).
     """
     return action_log_repo.get_action_logs_with_filters_total_count(
-        db,
-        date,
-        action_type,
-        user_id,
-        log_type
+        db, date, action_type, user_id, log_type
     )
-

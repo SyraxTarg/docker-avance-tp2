@@ -1,15 +1,23 @@
 """
 This file contains the controller related to likes
 """
+
 from sqlalchemy.orm import Session
-from schemas.response_schemas.profile_schema_response import ProfileRestrictedSchemaResponse
+from schemas.response_schemas.profile_schema_response import (
+    ProfileRestrictedSchemaResponse,
+)
 from services import (
     # event_service,
     like_service,
     profile_service,
-    user_service
+    user_service,
 )
-from schemas.response_schemas.like_schema_response import LikeSchemaresponseSchemas,  LikeListSchemaresponseSchemas, IsLikedResponseSchema, LikeCountSchemaResponse
+from schemas.response_schemas.like_schema_response import (
+    LikeSchemaresponseSchemas,
+    LikeListSchemaresponseSchemas,
+    IsLikedResponseSchema,
+    LikeCountSchemaResponse,
+)
 
 
 def unlike_event(db: Session, profile_id: int, event_id: int) -> dict[str, str]:
@@ -30,6 +38,7 @@ def unlike_event(db: Session, profile_id: int, event_id: int) -> dict[str, str]:
     like_service.unlike_event(db, profile_id, event_id)
     return {"msg": "like removed"}
 
+
 def get_event_like_count(db: Session, event_id: int) -> LikeCountSchemaResponse:
     """
     Retreives a count of all likes from an event.
@@ -45,7 +54,8 @@ def get_event_like_count(db: Session, event_id: int) -> LikeCountSchemaResponse:
         count=like_service.get_likes_count_from_event(db, event_id)
     )
 
-def get_likes(db: Session, offset: int, limit: int)  ->  LikeListSchemaresponseSchemas:
+
+def get_likes(db: Session, offset: int, limit: int) -> LikeListSchemaresponseSchemas:
     """
     Retrieves a list of "likes" from the database with pagination.
 
@@ -83,18 +93,18 @@ def get_likes(db: Session, offset: int, limit: int)  ->  LikeListSchemaresponseS
 
         # event = event_service.get_event_by_id(db, like.event_id)
 
-        all_likes.append(LikeSchemaresponseSchemas(
-            id=like.id,
-            profile=profile_schema,
-            event_id=like.event_id
-        ))
+        all_likes.append(
+            LikeSchemaresponseSchemas(
+                id=like.id, profile=profile_schema, event_id=like.event_id
+            )
+        )
 
-    return  LikeListSchemaresponseSchemas(
-        count=len(all_likes),
-        data=all_likes
-    )
+    return LikeListSchemaresponseSchemas(count=len(all_likes), data=all_likes)
 
-def like_event_current_user(db: Session, profile_id: int, event_id: int) -> LikeSchemaresponseSchemas:
+
+def like_event_current_user(
+    db: Session, profile_id: int, event_id: int
+) -> LikeSchemaresponseSchemas:
     """
     Allows a user to like an event.
 
@@ -131,10 +141,9 @@ def like_event_current_user(db: Session, profile_id: int, event_id: int) -> Like
     # event = event_service.get_event_by_id(db, event_id)
 
     return LikeSchemaresponseSchemas(
-        id=new_like.id,
-        profile=profile_schema,
-        event_id=event_id
+        id=new_like.id, profile=profile_schema, event_id=event_id
     )
+
 
 def is_event_liked_by_current(db: Session, event_id: int, current_user_id: int) -> bool:
     """

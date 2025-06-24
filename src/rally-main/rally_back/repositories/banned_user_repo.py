@@ -1,4 +1,5 @@
 """This file contains the banned user repository"""
+
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -6,7 +7,7 @@ from sqlalchemy import func
 from models.banned_user_model import BannedUser
 
 
-def add_new_banned_user(db: Session, banned_user: BannedUser)->None:
+def add_new_banned_user(db: Session, banned_user: BannedUser) -> None:
     """
     Adding a new banned user in the database
 
@@ -16,7 +17,8 @@ def add_new_banned_user(db: Session, banned_user: BannedUser)->None:
     """
     db.add(banned_user)
 
-def commit_banned_user(db: Session)->None:
+
+def commit_banned_user(db: Session) -> None:
     """
     Commiting the changes from the database
 
@@ -25,7 +27,8 @@ def commit_banned_user(db: Session)->None:
     """
     db.commit()
 
-def refresh_banned_user(db: Session, banned_user: BannedUser)->None:
+
+def refresh_banned_user(db: Session, banned_user: BannedUser) -> None:
     """
     Refreshing an object from the database.
 
@@ -35,7 +38,8 @@ def refresh_banned_user(db: Session, banned_user: BannedUser)->None:
     """
     db.refresh(banned_user)
 
-def get_banned_user_by_email(db: Session, email: str)->Optional[BannedUser]:
+
+def get_banned_user_by_email(db: Session, email: str) -> Optional[BannedUser]:
     """
     Fetching a banned user from the database according to a given email.
 
@@ -46,9 +50,14 @@ def get_banned_user_by_email(db: Session, email: str)->Optional[BannedUser]:
     Returns:
         Optional[BannedUser]
     """
-    return db.query(BannedUser).filter(func.lower(BannedUser.banned_email) == email.lower()).first()
+    return (
+        db.query(BannedUser)
+        .filter(func.lower(BannedUser.banned_email) == email.lower())
+        .first()
+    )
 
-def delete_banned_user(db: Session, banned_user: BannedUser)->None:
+
+def delete_banned_user(db: Session, banned_user: BannedUser) -> None:
     """
     Deleting a banned user from the database.
 
@@ -58,7 +67,8 @@ def delete_banned_user(db: Session, banned_user: BannedUser)->None:
     """
     db.delete(banned_user)
 
-def get_all_banned_emails(db: Session, offset: int, limit: int)-> list[BannedUser]:
+
+def get_all_banned_emails(db: Session, offset: int, limit: int) -> list[BannedUser]:
     """
     Fetching all the banned users from the database.
 
@@ -72,7 +82,8 @@ def get_all_banned_emails(db: Session, offset: int, limit: int)-> list[BannedUse
     """
     return db.query(BannedUser).offset(offset).limit(limit).all()
 
-def get_all_banned_emails_total_count(db: Session)-> int:
+
+def get_all_banned_emails_total_count(db: Session) -> int:
     """
     Fetching all the banned users total count from the database.
 
@@ -83,5 +94,3 @@ def get_all_banned_emails_total_count(db: Session)-> int:
         int
     """
     return db.query(BannedUser).count()
-
-

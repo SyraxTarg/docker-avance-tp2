@@ -1,84 +1,86 @@
 """This file contains the custom errors extending httpexception"""
+
 from fastapi import HTTPException
 
+
 class CommentNotFound(HTTPException):
-    """ the comment is not found"""
+    """the comment is not found"""
 
 
 class EventNotFound(HTTPException):
-    """ the event is not found"""
+    """the event is not found"""
 
 
 class EmailAlreadyRegisteredError(HTTPException):
-    """ the user is already registered"""
+    """the user is already registered"""
 
 
 class WeakPasswordError(HTTPException):
-    """ the given password is weak"""
+    """the given password is weak"""
 
 
 class UserNotFoundError(HTTPException):
-    """ the user is not found"""
+    """the user is not found"""
 
 
 class InvalidCredentialsError(HTTPException):
-    """ the credentials are wrong"""
+    """the credentials are wrong"""
 
 
 class NoStripeAccountError(HTTPException):
-    """ the user has no stripe account"""
+    """the user has no stripe account"""
 
 
 class AddressNotFoundError(HTTPException):
-    """ the address is not found"""
+    """the address is not found"""
 
 
 class UserBannedError(HTTPException):
-    """ the user is banned"""
+    """the user is banned"""
 
 
 class TooManyAttemptsError(HTTPException):
-    """ too many attempts at login are made"""
+    """too many attempts at login are made"""
 
 
 class InvalidTokenError(HTTPException):
-    """ the token is invalid or missing"""
+    """the token is invalid or missing"""
 
 
 class BadRoleError(HTTPException):
-    """ the given role is not the one required"""
+    """the given role is not the one required"""
 
 
 class NoRefreshTokenError(HTTPException):
-    """ the refresh token is not found"""
+    """the refresh token is not found"""
 
 
 class BannedUserNotFoundError(HTTPException):
-    """ the banned user is not found"""
+    """the banned user is not found"""
 
 
 class PictureNotFoundError(HTTPException):
-    """ the picture is not found"""
+    """the picture is not found"""
 
 
 class FailedLoginNotFoundError(HTTPException):
-    """ the failed login is not found"""
+    """the failed login is not found"""
 
 
 class LikeNotFoundError(HTTPException):
-    """ the like is not found"""
+    """the like is not found"""
 
 
 class SignaledCommentNotFound(HTTPException):
-    """ the signaled comment is not found"""
+    """the signaled comment is not found"""
 
 
 class SignaledEventNotFound(HTTPException):
-    """ the signaled event is not found"""
+    """the signaled event is not found"""
 
 
 class SignaledUserNotFound(HTTPException):
-    """ the signaled user is not found"""
+    """the signaled user is not found"""
 
 
 class CheckoutError(HTTPException):
@@ -147,6 +149,7 @@ class ErrorDuringEmailing(HTTPException):
 
 class InvalidContent(HTTPException):
     """the content contains invalid terms"""
+
 
 class RecaptchaFailed(HTTPException):
     """the recaptcha failed"""

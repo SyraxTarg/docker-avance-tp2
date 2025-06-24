@@ -12,70 +12,87 @@ from services import event_picture_service
 def mock_db_session():
     return MagicMock(spec=Session)
 
+
 @pytest.fixture
 def mock_request():
     return MagicMock(spec=Request)
+
 
 @pytest.fixture
 def mock_get_event_by_id(mocker):
     return mocker.patch("services.event_service.get_event_by_id")
 
+
 @pytest.fixture
 def mock_add_event_picture(mocker):
     return mocker.patch("repositories.event_picture_repo.add_new_event_picture")
+
 
 @pytest.fixture
 def mock_commit_event_picture(mocker):
     return mocker.patch("repositories.event_picture_repo.commit_event_picture")
 
+
 @pytest.fixture
 def mock_refresh_event_picture(mocker):
     return mocker.patch("repositories.event_picture_repo.refresh_event_picture")
+
 
 @pytest.fixture
 def mock_get_event_picture_by_id(mocker):
     return mocker.patch("repositories.event_picture_repo.get_event_picture_by_id")
 
+
 @pytest.fixture
 def mock_get_all_event_pictures(mocker):
     return mocker.patch("repositories.event_picture_repo.get_all_event_pictures")
 
+
 @pytest.fixture
 def mock_get_event_pictures_from_event_id(mocker):
-    return mocker.patch("repositories.event_picture_repo.get_event_pictures_from_event_id")
+    return mocker.patch(
+        "repositories.event_picture_repo.get_event_pictures_from_event_id"
+    )
+
 
 @pytest.fixture
 def mock_get_profile(mocker):
     return mocker.patch("services.profile_service.get_profile")
 
+
 @pytest.fixture
 def mock_get_picture_by_id(mocker):
     return mocker.patch("services.event_picture_service.get_picture_by_id")
+
 
 @pytest.fixture
 def mock_get_picture_by_name(mocker):
     return mocker.patch("services.event_picture_service.get_picture_by_name")
 
+
 @pytest.fixture
 def mock_create_event_picture(mocker):
     return mocker.patch("services.event_picture_service.create_event_picture")
+
 
 @pytest.fixture
 def mock_delete_picture(mocker):
     return mocker.patch("services.event_picture_service.delete_picture")
 
+
 @pytest.fixture
 def mock_get_first_picture_of_event(mocker):
     return mocker.patch("repositories.event_picture_repo.get_first_picture_of_event")
+
 
 @pytest.fixture
 def mock_delete_event_picture(mocker):
     return mocker.patch("repositories.event_picture_repo.delete_event_picture")
 
+
 @pytest.fixture
 def mock_get_picture_by_name(mocker):
     return mocker.patch("repositories.event_picture_repo.get_picture_by_name")
-
 
 
 @pytest.fixture
@@ -85,6 +102,7 @@ def mock_event_picture():
     fake_picture.photo = "photo.jpg"
     fake_picture.uuid = uuid4()
     return fake_picture
+
 
 @pytest.fixture
 def mock_event_picture2():
@@ -102,7 +120,7 @@ def test_create_event_picture(
     mock_db_session,
     mock_add_event_picture,
     mock_commit_event_picture,
-    mock_refresh_event_picture
+    mock_refresh_event_picture,
 ):
     # Arrange
     mock_event_picture_class.return_value = mock_event_picture
@@ -123,7 +141,9 @@ def test_create_event_picture(
     mock_refresh_event_picture.assert_called_once()
 
 
-def test_get_picture_by_id(mock_event_picture, mock_db_session, mock_get_event_picture_by_id):
+def test_get_picture_by_id(
+    mock_event_picture, mock_db_session, mock_get_event_picture_by_id
+):
     # Arrange
     mock_get_event_picture_by_id.return_value = mock_event_picture
 
@@ -154,12 +174,16 @@ def test_get_pictures(mock_event_picture, mock_db_session, mock_get_all_event_pi
     mock_get_all_event_pictures.assert_called_once()
 
 
-def test_get_pictures_from_event(mock_event_picture, mock_db_session, mock_get_event_pictures_from_event_id):
+def test_get_pictures_from_event(
+    mock_event_picture, mock_db_session, mock_get_event_pictures_from_event_id
+):
     # Arrange
     mock_get_event_pictures_from_event_id.return_value = [mock_event_picture]
 
     # Act
-    result = event_picture_service.get_pictures_from_event(db=mock_db_session, event_id=1)
+    result = event_picture_service.get_pictures_from_event(
+        db=mock_db_session, event_id=1
+    )
 
     # Assert
     assert result[0].event_id == mock_event_picture.event_id
@@ -168,12 +192,16 @@ def test_get_pictures_from_event(mock_event_picture, mock_db_session, mock_get_e
     mock_get_event_pictures_from_event_id.assert_called_once()
 
 
-def test_get_first_picture_from_event(mock_event_picture, mock_db_session, mock_get_first_picture_of_event):
+def test_get_first_picture_from_event(
+    mock_event_picture, mock_db_session, mock_get_first_picture_of_event
+):
     # Arrange
     mock_get_first_picture_of_event.return_value = mock_event_picture
 
     # Act
-    result = event_picture_service.get_first_picture_of_event(db=mock_db_session, event_id=1)
+    result = event_picture_service.get_first_picture_of_event(
+        db=mock_db_session, event_id=1
+    )
 
     # Assert
     assert isinstance(result, EventPicture)
@@ -183,7 +211,13 @@ def test_get_first_picture_from_event(mock_event_picture, mock_db_session, mock_
     mock_get_first_picture_of_event.assert_called_once()
 
 
-def test_delete_picture(mock_event_picture, mock_db_session, mock_get_picture_by_id, mock_delete_event_picture, mock_commit_event_picture):
+def test_delete_picture(
+    mock_event_picture,
+    mock_db_session,
+    mock_get_picture_by_id,
+    mock_delete_event_picture,
+    mock_commit_event_picture,
+):
     # Arrange
     mock_get_picture_by_id.return_value = mock_event_picture
     mock_delete_event_picture.return_value = None
@@ -194,16 +228,22 @@ def test_delete_picture(mock_event_picture, mock_db_session, mock_get_picture_by
 
     # Assert
     mock_get_picture_by_id.assert_called_once()
-    mock_delete_event_picture.assert_called_once_with(mock_db_session, mock_event_picture)
+    mock_delete_event_picture.assert_called_once_with(
+        mock_db_session, mock_event_picture
+    )
     mock_commit_event_picture.assert_called_once()
 
 
-def test_get_picture_by_name(mock_event_picture, mock_db_session, mock_get_picture_by_name):
+def test_get_picture_by_name(
+    mock_event_picture, mock_db_session, mock_get_picture_by_name
+):
     # Arrange
     mock_get_picture_by_name.return_value = mock_event_picture
 
     # Act
-    result = event_picture_service.get_picture_by_name(db=mock_db_session, name="photo.jpg")
+    result = event_picture_service.get_picture_by_name(
+        db=mock_db_session, name="photo.jpg"
+    )
 
     # Assert
     assert isinstance(result, EventPicture)
@@ -219,7 +259,7 @@ def test_add_picture_to_event(
     mock_get_picture_by_name,
     mock_event_picture2,
     mock_commit_event_picture,
-    mock_refresh_event_picture
+    mock_refresh_event_picture,
 ):
     # Arrange
     mock_get_picture_by_name.side_effect = [mock_event_picture, mock_event_picture2]
@@ -227,7 +267,9 @@ def test_add_picture_to_event(
     mock_refresh_event_picture.return_value = None
 
     # Act
-    event_picture_service.add_picture_to_event(db=mock_db_session, names=["photo.jpg", "photo2.jpg"], event_id=1)
+    event_picture_service.add_picture_to_event(
+        db=mock_db_session, names=["photo.jpg", "photo2.jpg"], event_id=1
+    )
 
     # Assert
     assert mock_get_picture_by_name.call_count == 2
@@ -242,7 +284,7 @@ def test_add_picture_to_event_no_picture(
     mock_event_picture2,
     mock_create_event_picture,
     mock_commit_event_picture,
-    mock_refresh_event_picture
+    mock_refresh_event_picture,
 ):
     # Arrange
     mock_get_picture_by_name.side_effect = [None, mock_event_picture2]
@@ -251,7 +293,9 @@ def test_add_picture_to_event_no_picture(
     mock_refresh_event_picture.return_value = None
 
     # Act
-    event_picture_service.add_picture_to_event(db=mock_db_session, names=["photo.jpg", "photo2.jpg"], event_id=1)
+    event_picture_service.add_picture_to_event(
+        db=mock_db_session, names=["photo.jpg", "photo2.jpg"], event_id=1
+    )
 
     # Assert
     assert mock_get_picture_by_name.call_count == 2
@@ -265,13 +309,15 @@ def test_delete_pictures(
     mock_db_session,
     mock_get_picture_by_name,
     mock_event_picture2,
-    mock_delete_event_picture
+    mock_delete_event_picture,
 ):
     # Arrange
     mock_get_picture_by_name.side_effect = [mock_event_picture, mock_event_picture2]
 
     # Act
-    event_picture_service.delete_pictures(db=mock_db_session, names=["photo.jpg", "photo2.jpg"])
+    event_picture_service.delete_pictures(
+        db=mock_db_session, names=["photo.jpg", "photo2.jpg"]
+    )
 
     # Assert
     assert mock_get_picture_by_name.call_count == 2

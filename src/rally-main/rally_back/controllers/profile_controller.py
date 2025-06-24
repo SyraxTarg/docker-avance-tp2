@@ -1,6 +1,7 @@
 """
 This file contains the controller related to profiles
 """
+
 from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -11,7 +12,7 @@ from schemas.response_schemas.profile_schema_response import (
     ProfileSchemaResponse,
     ProfileListSchemaResponse,
     ProfileRestrictedSchemaResponse,
-    ProfileRestrictedListSchemaResponse
+    ProfileRestrictedListSchemaResponse,
 )
 from schemas.request_schemas.profile_schema import ProfileSchema, ModifyProfileSchema
 from services import (
@@ -19,7 +20,7 @@ from services import (
     moderation_service,
     profile_service,
     role_service,
-    user_service
+    user_service,
 )
 from enums.role import RoleEnum
 from enums.log_level import LogLevelEnum
@@ -50,17 +51,14 @@ def get_profile(db: Session, profile_id: int) -> ProfileSchemaResponse:
     if profile:
         user = user_service.get_user(db, profile.user_id)
         role = role_service.get_role_by_id(db, user.role_id)
-        role = RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        )
+        role = RoleSchemaResponse(id=role.id, role=role.role)
         user = UserResponse(
             id=user.id,
             email=user.email,
             phone_number=user.phone_number,
             is_planner=user.is_planner,
             role=role,
-            account_id=user.account_id
+            account_id=user.account_id,
         )
         return ProfileSchemaResponse(
             id=profile.id,
@@ -70,11 +68,14 @@ def get_profile(db: Session, profile_id: int) -> ProfileSchemaResponse:
             nb_like=profile.nb_like,
             user=user,
             created_at=profile.created_at,
-            updated_at=profile.updated_at
-            )
+            updated_at=profile.updated_at,
+        )
     raise HTTPException(status_code=404, detail="Profile not found")
 
-def update_profile(db: Session, profile_schema: ModifyProfileSchema, profile_id: int) -> ProfileSchemaResponse:
+
+def update_profile(
+    db: Session, profile_schema: ModifyProfileSchema, profile_id: int
+) -> ProfileSchemaResponse:
     """
     Updates a user's profile and associated user details.
 
@@ -91,29 +92,24 @@ def update_profile(db: Session, profile_schema: ModifyProfileSchema, profile_id:
         ProfileSchemaResponse: A response containing the updated profile details, user information, and role.
     """
     user = user_service.update_user_phone_number(
-        db,
-        profile_id,
-        profile_schema.phone_number
+        db, profile_id, profile_schema.phone_number
     )
     profile = profile_service.update_profile_personal_infos(
         db,
         profile_id,
         profile_schema.first_name,
         profile_schema.last_name,
-        profile_schema.photo
+        profile_schema.photo,
     )
     role = role_service.get_role_by_id(db, user.role_id)
-    role = RoleSchemaResponse(
-        id=role.id,
-        role=role.role
-    )
+    role = RoleSchemaResponse(id=role.id, role=role.role)
 
     action_log_service.create_action_log(
         db,
         user.id,
         LogLevelEnum.INFO,
         ActionEnum.PROFILE_UPDATED,
-        f"Profile {profile.id} updated at {profile.updated_at} by {user.email}"
+        f"Profile {profile.id} updated at {profile.updated_at} by {user.email}",
     )
 
     return ProfileSchemaResponse(
@@ -123,18 +119,21 @@ def update_profile(db: Session, profile_schema: ModifyProfileSchema, profile_id:
         photo=profile.photo,
         nb_like=profile.nb_like,
         user=UserResponse(
-                id=user.id,
-                email=user.email,
-                phone_number=user.phone_number,
-                is_planner=user.is_planner,
-                role=role,
-                account_id=user.account_id
-            ),
+            id=user.id,
+            email=user.email,
+            phone_number=user.phone_number,
+            is_planner=user.is_planner,
+            role=role,
+            account_id=user.account_id,
+        ),
         created_at=profile.created_at,
-        updated_at=profile.updated_at
-        )
+        updated_at=profile.updated_at,
+    )
 
-def delete_profile(db: Session, profile_id: int, current_user_id: int) -> dict[str, str]:
+
+def delete_profile(
+    db: Session, profile_id: int, current_user_id: int
+) -> dict[str, str]:
     """
     Deletes a user profile from the system.
 
@@ -153,6 +152,7 @@ def delete_profile(db: Session, profile_id: int, current_user_id: int) -> dict[s
     moderation_service.delete_user(db, profile_id, current_user_id)
     return {"msg": "supprime"}
 
+
 def filter_profiles(
     db: Session,
     nb_like: Optional[int],
@@ -160,7 +160,7 @@ def filter_profiles(
     role: Optional[RoleEnum],
     search: Optional[str],
     offset: int,
-    limit: int
+    limit: int,
 ) -> ProfileListSchemaResponse:
     """
     Filters profiles based on the provided criteria.
@@ -180,24 +180,25 @@ def filter_profiles(
                 - count: The total number of profiles matching the criteria.
                 - data: A list of ProfileSchemaResponse objects representing the filtered profiles.
     """
-    profiles =  profile_service.get_profiles_by_filters(db, nb_like, is_planner, role, search, offset, limit)
-    total = profile_service.get_profiles_by_filters_total_count(db, nb_like, is_planner, role, search)
+    profiles = profile_service.get_profiles_by_filters(
+        db, nb_like, is_planner, role, search, offset, limit
+    )
+    total = profile_service.get_profiles_by_filters_total_count(
+        db, nb_like, is_planner, role, search
+    )
 
     all_profiles = []
     for profile in profiles:
         user = user_service.get_user(db, profile.user_id)
         role = role_service.get_role_by_id(db, user.role_id)
-        role_schema = RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        )
+        role_schema = RoleSchemaResponse(id=role.id, role=role.role)
         user = UserResponse(
             id=user.id,
             email=user.email,
             phone_number=user.phone_number,
             is_planner=user.is_planner,
             role=role_schema,
-            account_id=user.account_id
+            account_id=user.account_id,
         )
 
         all_profiles.append(
@@ -209,22 +210,17 @@ def filter_profiles(
                 nb_like=profile.nb_like,
                 user=user,
                 created_at=profile.created_at,
-                updated_at=profile.updated_at
+                updated_at=profile.updated_at,
             )
         )
 
     return ProfileListSchemaResponse(
-        count=len(all_profiles),
-        total=total,
-        data=all_profiles
+        count=len(all_profiles), total=total, data=all_profiles
     )
 
 
 def filter_profiles_planner(
-    db: Session,
-    search: Optional[str],
-    offset: int,
-    limit: int
+    db: Session, search: Optional[str], offset: int, limit: int
 ) -> ProfileRestrictedListSchemaResponse:
     """
     Filters profiles based on the provided criteria.
@@ -241,8 +237,12 @@ def filter_profiles_planner(
                 - count: The total number of profiles matching the criteria.
                 - data: A list of ProfileSchemaResponse objects representing the filtered profiles.
     """
-    profiles =  profile_service.get_profiles_by_filters(db, None, True, None, search, offset, limit)
-    total = profile_service.get_profiles_by_filters_total_count(db, None, True, None, search)
+    profiles = profile_service.get_profiles_by_filters(
+        db, None, True, None, search, offset, limit
+    )
+    total = profile_service.get_profiles_by_filters_total_count(
+        db, None, True, None, search
+    )
 
     all_profiles = []
     for profile in profiles:
@@ -261,9 +261,7 @@ def filter_profiles_planner(
         )
 
     return ProfileRestrictedListSchemaResponse(
-        count=len(all_profiles),
-        total=total,
-        data=all_profiles
+        count=len(all_profiles), total=total, data=all_profiles
     )
 
 
@@ -273,7 +271,7 @@ def filter_profiles_restricted(
     role: Optional[RoleEnum],
     search: Optional[str],
     offset: int,
-    limit: int
+    limit: int,
 ) -> ProfileRestrictedListSchemaResponse:
     """
     Filters restricted profiles based on the provided criteria. This function is meant for fetching profiles
@@ -293,7 +291,9 @@ def filter_profiles_restricted(
                 - count: The total number of profiles matching the criteria.
                 - data: A list of ProfileRestrictedSchemaResponse objects representing the filtered profiles with restricted data.
     """
-    profiles =  profile_service.get_profiles_by_filters(db, nb_like, True, role, search, offset, limit)
+    profiles = profile_service.get_profiles_by_filters(
+        db, nb_like, True, role, search, offset, limit
+    )
 
     all_profiles = []
     for profile in profiles:
@@ -310,9 +310,9 @@ def filter_profiles_restricted(
             )
         )
     return ProfileRestrictedListSchemaResponse(
-        count=len(all_profiles),
-        data=all_profiles
+        count=len(all_profiles), data=all_profiles
     )
+
 
 def get_admins(db: Session) -> ProfileListSchemaResponse:
     """
@@ -332,17 +332,14 @@ def get_admins(db: Session) -> ProfileListSchemaResponse:
     for profile in profiles:
         user = user_service.get_user(db, profile.user_id)
         role = role_service.get_role_by_id(db, user.role_id)
-        role = RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        )
+        role = RoleSchemaResponse(id=role.id, role=role.role)
         user = UserResponse(
             id=user.id,
             email=user.email,
             phone_number=user.phone_number,
             is_planner=user.is_planner,
             role=role,
-            account_id=user.account_id
+            account_id=user.account_id,
         )
 
         all_profiles.append(
@@ -354,11 +351,8 @@ def get_admins(db: Session) -> ProfileListSchemaResponse:
                 nb_like=profile.nb_like,
                 user=user,
                 created_at=profile.created_at,
-                updated_at=profile.updated_at
+                updated_at=profile.updated_at,
             )
         )
 
-    return ProfileListSchemaResponse(
-        count=len(all_profiles),
-        data=all_profiles
-    )
+    return ProfileListSchemaResponse(count=len(all_profiles), data=all_profiles)

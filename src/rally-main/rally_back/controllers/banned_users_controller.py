@@ -1,19 +1,22 @@
 """
 This file contains the controller related to banned users
 """
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from services import (
-    action_log_service,
-    banned_user_service
+from services import action_log_service, banned_user_service
+from schemas.response_schemas.banned_user_schema_response import (
+    BannedUserSchemaResponse,
+    BannedUserListSchemaResponse,
 )
-from schemas.response_schemas.banned_user_schema_response import BannedUserSchemaResponse, BannedUserListSchemaResponse
 from enums.log_level import LogLevelEnum
 from enums.action import ActionEnum
 from models.user_model import User
 
 
-def get_banned_users(db: Session, offset: int, limit: int) -> BannedUserListSchemaResponse:
+def get_banned_users(
+    db: Session, offset: int, limit: int
+) -> BannedUserListSchemaResponse:
     """
     Retrieves a list of banned users from the database, with pagination support.
 
@@ -35,13 +38,13 @@ def get_banned_users(db: Session, offset: int, limit: int) -> BannedUserListSche
                 id=user.id,
                 banned_email=user.banned_email,
                 banned_by_email=user.banned_by_email,
-                banned_at=user.banned_at
+                banned_at=user.banned_at,
             )
         )
     return BannedUserListSchemaResponse(
         count=len(all_banned_users),
         total=banned_user_service.get_banned_user_total_count(db),
-        data=all_banned_users
+        data=all_banned_users,
     )
 
 
@@ -68,7 +71,7 @@ def get_banned_user_by_email(db: Session, email: str) -> BannedUserSchemaRespons
         id=banned_user.id,
         banned_email=banned_user.banned_email,
         banned_by_email=banned_user.banned_by_email,
-        banned_at=banned_user.banned_at
+        banned_at=banned_user.banned_at,
     )
 
 
@@ -93,6 +96,6 @@ def delete_banned_user(db: Session, email: str, current_user: User) -> bool:
         current_user.id,
         LogLevelEnum.WARNING,
         ActionEnum.EMAIL_UNBANNED,
-        f"User {current_user.email} removed email {email} from banned users"
+        f"User {current_user.email} removed email {email} from banned users",
     )
     return True

@@ -8,7 +8,9 @@ from controllers import authent_controller, payment_controller
 from database.db import get_db
 from models.user_model import User
 from enums.payment_status import PaymentStatusEnum
-from schemas.response_schemas.payment_schema_response import PaymentRestrictedListSchemaResponse
+from schemas.response_schemas.payment_schema_response import (
+    PaymentRestrictedListSchemaResponse,
+)
 from schemas.request_schemas.payment_schema import RefundSchema
 
 router = APIRouter(
@@ -16,19 +18,21 @@ router = APIRouter(
     tags=["payments"],
 )
 
+
 @router.post("/checkout")
 def create_session_endpoint(
     event_id: int = Query,
     current_user: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
-)->dict[str, str]:
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
     """Create a Stripe checkout session for a user to complete their payment for an event."""
     return payment_controller.create_check_out_session(db, event_id, current_user)
+
 
 @router.post("/create-account")
 def create_account(
     current_user: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Create a Stripe account for the user and return the onboarding URL."""
     return payment_controller.get_onboarding_url(db, current_user)
@@ -38,17 +42,20 @@ def create_account(
 def refund(
     refund_schema: RefundSchema,
     current_user: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Create a Stripe account for the user and return the onboarding URL."""
     print(refund_schema.event_id)
-    return payment_controller.refund_payment_controller( db, current_user.id, refund_schema.event_id)
+    return payment_controller.refund_payment_controller(
+        db, current_user.id, refund_schema.event_id
+    )
+
 
 @router.post("/webhook/stripe")
 async def stripe_webhook(
     request: Request,
     stripe_signature: str = Header(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Handle Stripe webhook events for payment status updates."""
     payload = await request.body()
@@ -56,9 +63,7 @@ async def stripe_webhook(
 
     try:
         event = stripe.Webhook.construct_event(
-            payload=payload,
-            sig_header=stripe_signature,
-            secret=endpoint_secret
+            payload=payload, sig_header=stripe_signature, secret=endpoint_secret
         )
     except HTTPException as e:
         raise HTTPException(status_code=400, detail="Signature invalide") from e
@@ -80,8 +85,8 @@ def get_payments_for_current_user(
     current_user: User = Depends(authent_controller.get_connected_user),
     offset: int = Query(0),
     limit: int = Query(5),
-    db: Session = Depends(get_db)
-)->PaymentRestrictedListSchemaResponse:
+    db: Session = Depends(get_db),
+) -> PaymentRestrictedListSchemaResponse:
     """Get a paginated list of payments made by the current user with optional filters."""
     try:
         return payment_controller.get_payments_for_user(
@@ -95,9 +100,10 @@ def get_payments_for_current_user(
             date_apres,
             date_avant,
             offset,
-            limit
+            limit,
         )
     except Exception as e:
         import traceback
+
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail="Erreur serveur interne")

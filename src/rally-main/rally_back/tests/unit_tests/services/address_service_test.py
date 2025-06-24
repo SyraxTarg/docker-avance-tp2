@@ -6,29 +6,30 @@ from models.address_model import Address
 from services import address_service
 from errors import AddressNotFoundError
 
- 
 
 @pytest.fixture
 def mock_db_session():
     return MagicMock(spec=Session)
 
+
 @pytest.fixture
 def mock_add_new_address(mocker):
     return mocker.patch("repositories.address_repo.add_new_address")
+
 
 @pytest.fixture
 def mock_commit_address(mocker):
     return mocker.patch("repositories.address_repo.commit_address")
 
+
 @pytest.fixture
 def mock_refresh_address(mocker):
     return mocker.patch("repositories.address_repo.refresh_address")
 
+
 @pytest.fixture
 def mock_get_address_by_id(mocker):
     return mocker.patch("repositories.address_repo.get_address_by_id")
-
-
 
 
 @pytest.fixture
@@ -50,7 +51,7 @@ def test_create_address(
     mock_db_session,
     mock_add_new_address,
     mock_commit_address,
-    mock_refresh_address
+    mock_refresh_address,
 ):
     # Arrange
     mock_address_class.return_value = mock_address
@@ -65,7 +66,7 @@ def test_create_address(
         zipcode="33300",
         number="15",
         street="Cours Louis Fargue",
-        country="France"
+        country="France",
     )
 
     # Assert
@@ -109,7 +110,7 @@ def test_update_address(
     mock_db_session,
     mock_commit_address,
     mock_refresh_address,
-    mock_get_address_by_id
+    mock_get_address_by_id,
 ):
     # Arrange
     mock_get_address_by_id.return_value = mock_address
@@ -124,7 +125,7 @@ def test_update_address(
         zipcode="75000",
         number="8",
         street="Rue de la paix",
-        country="France"
+        country="France",
     )
 
     # Assert
@@ -136,10 +137,8 @@ def test_update_address(
     mock_commit_address.assert_called_once()
     mock_refresh_address.assert_called_once()
 
-def test_update_address_not_found(
-    mock_db_session,
-    mock_get_address_by_id
-):
+
+def test_update_address_not_found(mock_db_session, mock_get_address_by_id):
     # Arrange
     mock_get_address_by_id.return_value = None
 
@@ -152,7 +151,7 @@ def test_update_address_not_found(
             zipcode="75000",
             number="8",
             street="Rue de la paix",
-            country="France"
+            country="France",
         )
 
     # Assert

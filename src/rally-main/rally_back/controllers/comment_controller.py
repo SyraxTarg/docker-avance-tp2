@@ -1,23 +1,31 @@
 """
 This file contains the controller related to comments
 """
+
 from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
 from errors import CommentNotFound, ProfileNotFound, EventNotFound
-from schemas.response_schemas.profile_schema_response import ProfileRestrictedSchemaResponse
+from schemas.response_schemas.profile_schema_response import (
+    ProfileRestrictedSchemaResponse,
+)
 from services import (
     comment_service,
     event_service,
     moderation_service,
     profile_service,
-    user_service
+    user_service,
 )
 from schemas.request_schemas.comment_schema import CommentSchema
-from schemas.response_schemas.comment_schema_response import CommentSchemaResponse, CommentListSchemaResponse
+from schemas.response_schemas.comment_schema_response import (
+    CommentSchemaResponse,
+    CommentListSchemaResponse,
+)
 
 
-def comment_event(db: Session, comment: CommentSchema, profile_id: int) -> CommentSchemaResponse:
+def comment_event(
+    db: Session, comment: CommentSchema, profile_id: int
+) -> CommentSchemaResponse:
     """
     Allows a user to comment on an event.
 
@@ -33,12 +41,16 @@ def comment_event(db: Session, comment: CommentSchema, profile_id: int) -> Comme
         ProfileNotFound: If the profile corresponding to `profile_id` is not found.
         EventNotFound: If the event corresponding to `comment.event_id` is not found.
     """
-    new_comment = comment_service.comment_event(db, profile_id=profile_id, event_id=comment.event_id, content=comment.content)
+    new_comment = comment_service.comment_event(
+        db, profile_id=profile_id, event_id=comment.event_id, content=comment.content
+    )
 
     try:
         profile = profile_service.get_profile(db, profile_id)
         if not profile:
-            raise ProfileNotFound(status_code=404, detail="Le profil n'a pas été trouvé")
+            raise ProfileNotFound(
+                status_code=404, detail="Le profil n'a pas été trouvé"
+            )
 
         user = user_service.get_user(db, profile.user_id)
 
@@ -61,14 +73,16 @@ def comment_event(db: Session, comment: CommentSchema, profile_id: int) -> Comme
             profile=profile_schema,
             event_id=event.id,
             content=new_comment.content,
-            created_at=new_comment.created_at
+            created_at=new_comment.created_at,
         )
     except (ProfileNotFound, EventNotFound) as e:
         moderation_service.delete_comment(db, new_comment.id, profile_id)
         raise e
 
 
-def get_comments_from_event(db: Session, event_id: int, offset: int, limit: int) -> CommentListSchemaResponse:
+def get_comments_from_event(
+    db: Session, event_id: int, offset: int, limit: int
+) -> CommentListSchemaResponse:
     """
     Retrieves a list of comments for a specific event, with pagination.
 
@@ -93,7 +107,9 @@ def get_comments_from_event(db: Session, event_id: int, offset: int, limit: int)
         profile = profile_service.get_profile(db, comment.profile_id)
 
         if not profile:
-            raise ProfileNotFound(status_code=404, detail="Le profil n'a pas été trouvé")
+            raise ProfileNotFound(
+                status_code=404, detail="Le profil n'a pas été trouvé"
+            )
 
         user = user_service.get_user(db, profile.user_id)
 
@@ -105,25 +121,25 @@ def get_comments_from_event(db: Session, event_id: int, offset: int, limit: int)
             nb_like=profile.nb_like,
             email=user.email,
             created_at=profile.created_at,
-            updated_at=profile.updated_at
+            updated_at=profile.updated_at,
         )
 
         event = event_service.get_event_by_id(db, comment.event_id)
         if not event:
             raise EventNotFound(status_code=404, detail="L'event n'a pas été trouvé")
 
-        all_comments.append(CommentSchemaResponse(
-            id=comment.id,
-            profile=profile_schema,
-            event_id=event.id,
-            content=comment.content,
-            created_at=comment.created_at
-        ))
+        all_comments.append(
+            CommentSchemaResponse(
+                id=comment.id,
+                profile=profile_schema,
+                event_id=event.id,
+                content=comment.content,
+                created_at=comment.created_at,
+            )
+        )
 
     return CommentListSchemaResponse(
-        total=total,
-        count=len(all_comments),
-        data=all_comments
+        total=total, count=len(all_comments), data=all_comments
     )
 
 
@@ -152,26 +168,18 @@ def get_comments(
         EventNotFound: If the event corresponding to the comment is not found.
     """
     comments = comment_service.get_all_comments(
-        db,
-        offset,
-        limit,
-        email,
-        event_email,
-        date,
-        search
+        db, offset, limit, email, event_email, date, search
     )
     total = comment_service.get_all_comments_total_count(
-        db,
-        email=email,
-        event_email=event_email,
-        date=date,
-        search=search
+        db, email=email, event_email=event_email, date=date, search=search
     )
     all_comments = []
     for comment in comments:
         profile = profile_service.get_profile(db, comment.profile_id)
         if not profile:
-            raise ProfileNotFound(status_code=404, detail="Le profil n'a pas été trouvé")
+            raise ProfileNotFound(
+                status_code=404, detail="Le profil n'a pas été trouvé"
+            )
 
         user = user_service.get_user(db, profile.user_id)
         profile_schema = ProfileRestrictedSchemaResponse(
@@ -188,22 +196,24 @@ def get_comments(
         if not event:
             raise EventNotFound(status_code=404, detail="L'event n'a pas été trouvé")
 
-        all_comments.append(CommentSchemaResponse(
-            id=comment.id,
-            profile=profile_schema,
-            event_id=event.id,
-            content=comment.content,
-            created_at=comment.created_at
-        ))
+        all_comments.append(
+            CommentSchemaResponse(
+                id=comment.id,
+                profile=profile_schema,
+                event_id=event.id,
+                content=comment.content,
+                created_at=comment.created_at,
+            )
+        )
 
     return CommentListSchemaResponse(
-        total=total,
-        count=len(all_comments),
-        data=all_comments
+        total=total, count=len(all_comments), data=all_comments
     )
 
 
-def delete_comment(db: Session, comment_id: int, current_user_id: int) -> dict[str, str]:
+def delete_comment(
+    db: Session, comment_id: int, current_user_id: int
+) -> dict[str, str]:
     """
     Deletes a comment by its ID.
 
@@ -219,7 +229,9 @@ def delete_comment(db: Session, comment_id: int, current_user_id: int) -> dict[s
         CommentNotFound: If no comment is found with the provided `comment_id`.
     """
     if not get_comment_by_id(db, comment_id):
-        raise CommentNotFound(status_code=404, detail="Le commentaire n'a pas été trouvé")
+        raise CommentNotFound(
+            status_code=404, detail="Le commentaire n'a pas été trouvé"
+        )
     moderation_service.delete_comment(db, comment_id, current_user_id)
     return {"msg": "commentaire supprimé"}
 
@@ -263,11 +275,13 @@ def get_comment_by_id(db: Session, comment_id: int) -> CommentSchemaResponse:
         profile=profile_schema,
         event_id=event.id,
         content=comment.content,
-        created_at=comment.created_at
+        created_at=comment.created_at,
     )
 
 
-def get_comments_from_profile(db: Session, profile_id: int, offset: int, limit: int) -> CommentListSchemaResponse:
+def get_comments_from_profile(
+    db: Session, profile_id: int, offset: int, limit: int
+) -> CommentListSchemaResponse:
     """
     Retrieves a list of comments for a specific profile, with pagination.
 
@@ -290,7 +304,9 @@ def get_comments_from_profile(db: Session, profile_id: int, offset: int, limit: 
     for comment in comments:
         profile = profile_service.get_profile(db, comment.profile_id)
         if not profile:
-            raise ProfileNotFound(status_code=404, detail="Le profil n'a pas été trouvé")
+            raise ProfileNotFound(
+                status_code=404, detail="Le profil n'a pas été trouvé"
+            )
 
         user = user_service.get_user(db, profile.user_id)
 
@@ -310,16 +326,16 @@ def get_comments_from_profile(db: Session, profile_id: int, offset: int, limit: 
         if not event:
             raise EventNotFound(status_code=404, detail="L'event n'a pas été trouvé")
 
-        all_comments.append(CommentSchemaResponse(
-            id=comment.id,
-            profile=profile_schema,
-            event_id=event.id,
-            content=comment.content,
-            created_at=comment.created_at
-        ))
+        all_comments.append(
+            CommentSchemaResponse(
+                id=comment.id,
+                profile=profile_schema,
+                event_id=event.id,
+                content=comment.content,
+                created_at=comment.created_at,
+            )
+        )
 
     return CommentListSchemaResponse(
-        total=total,
-        count=len(all_comments),
-        data=all_comments
+        total=total, count=len(all_comments), data=all_comments
     )

@@ -1,6 +1,7 @@
 """
 This file contains the controller related to authentication
 """
+
 from datetime import datetime
 from typing import Optional
 from fastapi import Depends, Cookie, Request, status, Header
@@ -20,66 +21,68 @@ from errors import (
     EmailAlreadyRegisteredError,
     WeakPasswordError,
     UserNotFoundError,
-    InvalidCredentialsError
+    InvalidCredentialsError,
 )
 
 
 async def register_user(
-    user: RegisterSchema,
-    db: Session = Depends(get_db)
+    user: RegisterSchema, db: Session = Depends(get_db)
 ) -> UserResponse:
     """
-        Register a new user if the email is not already in use and the password is strong.
+    Register a new user if the email is not already in use and the password is strong.
 
-        Args:
-            user (RegisterSchema): The registration data including email, password, phone number, first name, and last name.
-            db (Session, optional): SQLAlchemy session injected via FastAPI dependency.
+    Args:
+        user (RegisterSchema): The registration data including email, password, phone number, first name, and last name.
+        db (Session, optional): SQLAlchemy session injected via FastAPI dependency.
 
-        Returns:
-            UserResponse: The registered user's public information.
+    Returns:
+        UserResponse: The registered user's public information.
 
-        Raises:
-            EmailAlreadyRegisteredError: If the email is already associated with an existing user.
-            WeakPasswordError: If the provided password does not meet the strength requirements.
+    Raises:
+        EmailAlreadyRegisteredError: If the email is already associated with an existing user.
+        WeakPasswordError: If the provided password does not meet the strength requirements.
     """
 
     if user_service.get_user_by_email(db, user.email):
         raise EmailAlreadyRegisteredError(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="email already registered"
         )
 
     if not authent_service.is_password_strong(user.password):
         raise WeakPasswordError(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 8 characters long, include an uppercase letter and a number"
+            detail="Password must be at least 8 characters long, include an uppercase letter and a number",
         )
 
-    new_user = authent_service.register_user(db, user.email, user.password, user.phone_number, user.first_name, user.last_name, user.photo)
+    new_user = authent_service.register_user(
+        db,
+        user.email,
+        user.password,
+        user.phone_number,
+        user.first_name,
+        user.last_name,
+        user.photo,
+    )
     role = role_service.get_role_by_id(db, new_user.role_id)
     action_log_service.create_action_log(
         db,
         new_user.id,
         LogLevelEnum.INFO,
         ActionEnum.REGISTRATION,
-        f"User {role.role} {new_user.email} registered at {new_user.created_at}"
+        f"User {role.role} {new_user.email} registered at {new_user.created_at}",
     )
     return UserResponse(
         id=new_user.id,
         email=new_user.email,
         phone_number=new_user.phone_number,
         is_planner=new_user.is_planner,
-        role=RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        ),
-        account_id=new_user.account_id
+        role=RoleSchemaResponse(id=role.id, role=role.role),
+        account_id=new_user.account_id,
     )
 
 
 async def register_admin(
-    user: RegisterSchema,
-    db: Session = Depends(get_db)
+    user: RegisterSchema, db: Session = Depends(get_db)
 ) -> UserResponse:
     """
     Registers a new admin user in the system.
@@ -96,36 +99,45 @@ async def register_admin(
         UserResponse: The created admin user's response data.
     """
     if user_service.get_user_by_email(db, user.email):
-        raise EmailAlreadyRegisteredError(status_code=400, detail="email already registered")
+        raise EmailAlreadyRegisteredError(
+            status_code=400, detail="email already registered"
+        )
 
     if not authent_service.is_password_strong(user.password):
-        raise WeakPasswordError(status_code=400, detail="Password must be at least 8 characters long, include an uppercase letter and a number")
+        raise WeakPasswordError(
+            status_code=400,
+            detail="Password must be at least 8 characters long, include an uppercase letter and a number",
+        )
 
-    new_user = authent_service.register_admin(db, user.email, user.password, user.phone_number, user.first_name, user.last_name, user.photo)
+    new_user = authent_service.register_admin(
+        db,
+        user.email,
+        user.password,
+        user.phone_number,
+        user.first_name,
+        user.last_name,
+        user.photo,
+    )
     role = role_service.get_role_by_id(db, new_user.role_id)
     action_log_service.create_action_log(
         db,
         new_user.id,
         LogLevelEnum.INFO,
         ActionEnum.REGISTRATION,
-        f"User {role.role} {new_user.email} registered at {new_user.created_at}"
+        f"User {role.role} {new_user.email} registered at {new_user.created_at}",
     )
     return UserResponse(
         id=new_user.id,
         email=new_user.email,
         phone_number=new_user.phone_number,
         is_planner=new_user.is_planner,
-        role=RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        ),
-        account_id=new_user.account_id
+        role=RoleSchemaResponse(id=role.id, role=role.role),
+        account_id=new_user.account_id,
     )
 
 
 async def register_super_admin(
-    user: RegisterSchema,
-    db: Session = Depends(get_db)
+    user: RegisterSchema, db: Session = Depends(get_db)
 ) -> UserResponse:
     """
     Registers a new super admin user in the system.
@@ -142,34 +154,46 @@ async def register_super_admin(
         UserResponse: The registered super admin's response data.
     """
     if user_service.get_user_by_email(db, user.email):
-        raise EmailAlreadyRegisteredError(status_code=400, detail="email already registered")
+        raise EmailAlreadyRegisteredError(
+            status_code=400, detail="email already registered"
+        )
 
     if not authent_service.is_password_strong(user.password):
-        raise WeakPasswordError(status_code=400, detail="Password must be at least 8 characters long, include an uppercase letter and a number")
+        raise WeakPasswordError(
+            status_code=400,
+            detail="Password must be at least 8 characters long, include an uppercase letter and a number",
+        )
 
-    new_user = authent_service.register_super_admin(db, user.email, user.password, user.phone_number, user.first_name, user.last_name, user.photo)
+    new_user = authent_service.register_super_admin(
+        db,
+        user.email,
+        user.password,
+        user.phone_number,
+        user.first_name,
+        user.last_name,
+        user.photo,
+    )
     role = role_service.get_role_by_id(db, new_user.role_id)
     action_log_service.create_action_log(
         db,
         new_user.id,
         LogLevelEnum.INFO,
         ActionEnum.REGISTRATION,
-        f"User {role.role} {new_user.email} registered at {new_user.created_at}"
+        f"User {role.role} {new_user.email} registered at {new_user.created_at}",
     )
     return UserResponse(
         id=new_user.id,
         email=new_user.email,
         phone_number=new_user.phone_number,
         is_planner=new_user.is_planner,
-        role=RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        ),
-        account_id=new_user.account_id
+        role=RoleSchemaResponse(id=role.id, role=role.role),
+        account_id=new_user.account_id,
     )
 
 
-async def refresh_token(refresh_token: str = Header(None), db: Session = Depends(get_db))->JSONResponse:
+async def refresh_token(
+    refresh_token: str = Header(None), db: Session = Depends(get_db)
+) -> JSONResponse:
     """
     Refreshes the authentication token using the provided refresh token.
 
@@ -187,7 +211,7 @@ async def refresh_token(refresh_token: str = Header(None), db: Session = Depends
 def verify_jwt(
     access_token: str = Cookie(None),
     authorization: str = Header(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> UserResponse:
     """
     Retrieves the currently connected user based on the provided access token.
@@ -204,7 +228,9 @@ def verify_jwt(
     """
     user = authent_service.get_connected_user(db, authorization, access_token)
     if not user:
-        raise UserNotFoundError(status_code=404, detail="L'utilisateur n'a pas été trouvé")
+        raise UserNotFoundError(
+            status_code=404, detail="L'utilisateur n'a pas été trouvé"
+        )
 
     role = role_service.get_role_by_id(db, user.role_id)
     user_schema = UserResponse(
@@ -213,10 +239,7 @@ def verify_jwt(
         phone_number=user.phone_number,
         is_planner=user.is_planner,
         account_id=user.account_id,
-        role=RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        )
+        role=RoleSchemaResponse(id=role.id, role=role.role),
     )
     return user_schema
 
@@ -224,7 +247,7 @@ def verify_jwt(
 def get_connected_user(
     access_token: str = Cookie(None),
     authorization: str = Header(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> User:
     """
     Retrieves the currently connected user based on the provided access token.
@@ -241,12 +264,14 @@ def get_connected_user(
     """
     user = authent_service.get_connected_user(db, authorization, access_token)
     if not user:
-        raise UserNotFoundError(status_code=404, detail="L'utilisateur n'a pas été trouvé")
+        raise UserNotFoundError(
+            status_code=404, detail="L'utilisateur n'a pas été trouvé"
+        )
     return user
 
+
 def get_optional_user(
-    authorization: Optional[str] = Header(None),
-    db: Session = Depends(get_db)
+    authorization: Optional[str] = Header(None), db: Session = Depends(get_db)
 ) -> Optional[User]:
     """
     Retrieves the currently connected user if credentials are provided,
@@ -254,10 +279,11 @@ def get_optional_user(
     """
     return authent_service.get_optional_user(db, authorization)
 
+
 def get_current_user(
     access_token: str = Cookie(None),
     authorization: str = Header(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> User:
     """
     Fetches the current user based on the provided access token.
@@ -274,14 +300,16 @@ def get_current_user(
     """
     user = authent_service.get_current_user(db, authorization, access_token)
     if not user:
-        raise UserNotFoundError(status_code=404, detail="L'utilisateur n'a pas été trouvé")
+        raise UserNotFoundError(
+            status_code=404, detail="L'utilisateur n'a pas été trouvé"
+        )
     return user
 
 
 def get_current_admin(
     access_token: str = Cookie(None),
     authorization: str = Header(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> User:
     """
     Fetches the current admin user based on the provided access token.
@@ -298,13 +326,16 @@ def get_current_admin(
     """
     user = authent_service.get_current_admin(db, authorization, access_token)
     if not user:
-        raise UserNotFoundError(status_code=404, detail="L'utilisateur n'a pas été trouvé")
+        raise UserNotFoundError(
+            status_code=404, detail="L'utilisateur n'a pas été trouvé"
+        )
     return user
+
 
 def get_current_admin_or_super_admin(
     access_token: str = Cookie(None),
     authorization: str = Header(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> User:
     """
     Fetches the current admin or super admin user based on the provided access token.
@@ -321,13 +352,16 @@ def get_current_admin_or_super_admin(
     """
     user = authent_service.get_super_admin_or_admin(db, authorization, access_token)
     if not user:
-        raise UserNotFoundError(status_code=404, detail="L'utilisateur n'a pas été trouvé")
+        raise UserNotFoundError(
+            status_code=404, detail="L'utilisateur n'a pas été trouvé"
+        )
     return user
+
 
 def get_current_super_admin(
     access_token: str = Cookie(None),
     authorization: str = Header(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> User:
     """
     Fetches the current super admin user based on the provided access token.
@@ -344,10 +378,13 @@ def get_current_super_admin(
     """
     user = authent_service.get_current_super_admin(db, authorization, access_token)
     if not user:
-        raise UserNotFoundError(status_code=404, detail="L'utilisateur n'a pas été trouvé")
+        raise UserNotFoundError(
+            status_code=404, detail="L'utilisateur n'a pas été trouvé"
+        )
     return user
 
-async def login(request: Request, user_login: UserAuth, db: Session)->JSONResponse:
+
+async def login(request: Request, user_login: UserAuth, db: Session) -> JSONResponse:
     """
     Handles user login by verifying the provided credentials and generating an access token.
 
@@ -365,7 +402,9 @@ async def login(request: Request, user_login: UserAuth, db: Session)->JSONRespon
     user = user_service.get_user_by_email(db, user_login.email)
 
     if not user:
-        raise InvalidCredentialsError(status_code=401, detail="Email ou mot de passe incorrect")
+        raise InvalidCredentialsError(
+            status_code=401, detail="Email ou mot de passe incorrect"
+        )
 
     response = await authent_service.login_for_access_token(request, user_login, db)
 
@@ -374,12 +413,13 @@ async def login(request: Request, user_login: UserAuth, db: Session)->JSONRespon
         user_id=user.id,
         log_type=LogLevelEnum.INFO,
         action_type=ActionEnum.LOGIN,
-        description=f"L'utilisateur {user.email} s'est connecté depuis {request.client.host}"
+        description=f"L'utilisateur {user.email} s'est connecté depuis {request.client.host}",
     )
 
     return response
 
-async def logout(db: Session, current_user_id: int)->JSONResponse:
+
+async def logout(db: Session, current_user_id: int) -> JSONResponse:
     """
     Logs out the currently authenticated user and generates a logout action log.
 
@@ -395,7 +435,9 @@ async def logout(db: Session, current_user_id: int)->JSONResponse:
     """
     user = user_service.get_user(db, current_user_id)
     if not user:
-        raise UserNotFoundError(status_code=404, detail="L'utilisateur n'a pas été trouvé")
+        raise UserNotFoundError(
+            status_code=404, detail="L'utilisateur n'a pas été trouvé"
+        )
 
     logout = await authent_service.logout()
 
@@ -404,12 +446,13 @@ async def logout(db: Session, current_user_id: int)->JSONResponse:
         user_id=user.id,
         log_type=LogLevelEnum.INFO,
         action_type=ActionEnum.LOGOUT,
-        description=f"L'utilisateur {user.email} s'est déconnecté à {datetime.now()}"
+        description=f"L'utilisateur {user.email} s'est déconnecté à {datetime.now()}",
     )
 
     return logout
 
-def verify_register_token(db: Session, user_email: str, token: int)->bool:
+
+def verify_register_token(db: Session, user_email: str, token: int) -> bool:
     """
     Verifies the registration token for a user.
 
@@ -428,13 +471,12 @@ def verify_register_token(db: Session, user_email: str, token: int)->bool:
     print(user)
     if not user:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return authent_service.verify_register_token(db, user, token)
 
 
-def send_token_by_email(db: Session, user_email: str)->None:
+def send_token_by_email(db: Session, user_email: str) -> None:
     """
     Sends a verification token to the user's email for email verification.
 
@@ -451,12 +493,12 @@ def send_token_by_email(db: Session, user_email: str)->None:
     user = user_service.get_user_by_email(db, user_email)
     if not user:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return authent_service.send_mail_for_email_verif(db, user)
 
-def generate_link_reset_password(db: Session, user_email: str)->None:
+
+def generate_link_reset_password(db: Session, user_email: str) -> None:
     """
     Generates and sends a password reset link to the user's email.
 
@@ -473,12 +515,12 @@ def generate_link_reset_password(db: Session, user_email: str)->None:
     user = user_service.get_user_by_email(db, user_email)
     if not user:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return authent_service.send_mail_for_password_reset(db, user)
 
-def reset_password(db: Session, reset_password_schema: ResetPasswordSchema)->bool:
+
+def reset_password(db: Session, reset_password_schema: ResetPasswordSchema) -> bool:
     """
     Resets the user's password using the provided reset token and new password.
 
@@ -493,10 +535,14 @@ def reset_password(db: Session, reset_password_schema: ResetPasswordSchema)->boo
         WeakPasswordError: If the new password doesn't meet the required strength (at least 8 characters, including an uppercase letter and a number).
     """
     if not authent_service.is_password_strong(reset_password_schema.new_password):
-        raise WeakPasswordError(status_code=400, detail="Password must be at least 8 characters long, include an uppercase letter and a number")
+        raise WeakPasswordError(
+            status_code=400,
+            detail="Password must be at least 8 characters long, include an uppercase letter and a number",
+        )
 
-    return authent_service.reset_pwd(db,
-                                     reset_password_schema.token,
-                                     reset_password_schema.new_password,
-                                     reset_password_schema.confirm_password
-                                    )
+    return authent_service.reset_pwd(
+        db,
+        reset_password_schema.token,
+        reset_password_schema.new_password,
+        reset_password_schema.confirm_password,
+    )

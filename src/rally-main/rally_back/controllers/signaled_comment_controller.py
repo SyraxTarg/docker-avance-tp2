@@ -1,13 +1,21 @@
 """
 This file contains the controller related to signaled comments
 """
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
-from schemas.request_schemas.signaled_comment_schema import SignaledCommentByCurrentUserSchema
+from schemas.request_schemas.signaled_comment_schema import (
+    SignaledCommentByCurrentUserSchema,
+)
 from schemas.response_schemas.reason_schema_response import ReasonSchemaResponse
-from schemas.response_schemas.signaled_comment_schema_response import SignaledCommentSchemaResponse, SignaledCommentListSchemaResponse
-from schemas.response_schemas.profile_schema_response import ProfileRestrictedSchemaResponse
+from schemas.response_schemas.signaled_comment_schema_response import (
+    SignaledCommentSchemaResponse,
+    SignaledCommentListSchemaResponse,
+)
+from schemas.response_schemas.profile_schema_response import (
+    ProfileRestrictedSchemaResponse,
+)
 from schemas.response_schemas.comment_schema_response import CommentSchemaResponse
 from services import (
     action_log_service,
@@ -17,7 +25,7 @@ from services import (
     profile_service,
     reason_service,
     signaled_comment_service,
-    user_service
+    user_service,
 )
 from enums.log_level import LogLevelEnum
 from enums.action import ActionEnum
@@ -27,7 +35,7 @@ from models.user_model import User
 def create_signaled_comment_by_current_user(
     db: Session,
     signaled_comment: SignaledCommentByCurrentUserSchema,
-    current_user: User
+    current_user: User,
 ) -> bool:
     """
     Allows a user to signal a comment, indicating that it violates community guidelines, by providing the comment ID
@@ -46,14 +54,14 @@ def create_signaled_comment_by_current_user(
         current_user.id,
         LogLevelEnum.INFO,
         ActionEnum.COMMENT_SIGNALED,
-        f"Profile {current_user.id} signaled comment {signaled_comment.comment_id} at {datetime.now()} by {current_user.email}"
+        f"Profile {current_user.id} signaled comment {signaled_comment.comment_id} at {datetime.now()} by {current_user.email}",
     )
 
     return signaled_comment_service.create_signaled_comment(
         db=db,
         comment_id=signaled_comment.comment_id,
         user_id=current_user.id,
-        reason_id=signaled_comment.reason_id
+        reason_id=signaled_comment.reason_id,
     )
 
 
@@ -67,7 +75,7 @@ def get_signaled_comments_filters(
     email_user: Optional[str],
     email_comment_user: Optional[str],
     offset: int,
-    limit: int
+    limit: int,
 ) -> SignaledCommentListSchemaResponse:
     """
     Retrieves a list of signaled comments based on various filter criteria such as the date of signaling,
@@ -99,18 +107,11 @@ def get_signaled_comments_filters(
         email_user,
         email_comment_user,
         offset,
-        limit
+        limit,
     )
 
     total = signaled_comment_service.get_signaled_comments_by_filters_total_count(
-        db,
-        date,
-        reason_id,
-        user_id,
-        comment_id,
-        status,
-        email_user,
-        email_comment_user
+        db, date, reason_id, user_id, comment_id, status, email_user, email_comment_user
     )
 
     all_signaled_comments = []
@@ -119,10 +120,7 @@ def get_signaled_comments_filters(
         signaled_by = user_service.get_user(db, signaled_comment.user_id)
 
         reason = reason_service.get_reason_by_id(db, signaled_comment.reason_id)
-        reason_response = ReasonSchemaResponse(
-            id=reason.id,
-            reason=reason.reason
-        )
+        reason_response = ReasonSchemaResponse(id=reason.id, reason=reason.reason)
 
         comment = comment_service.get_comment_by_id(db, signaled_comment.comment_id)
         if not comment:
@@ -149,7 +147,7 @@ def get_signaled_comments_filters(
             profile=profile_schema,
             event_id=event.id,
             content=comment.content,
-            created_at=comment.created_at
+            created_at=comment.created_at,
         )
 
         all_signaled_comments.append(
@@ -159,18 +157,18 @@ def get_signaled_comments_filters(
                 reason=reason_response,
                 user_id=signaled_by.id,
                 created_at=signaled_comment.created_at,
-                status=signaled_comment.status
+                status=signaled_comment.status,
             )
         )
 
     return SignaledCommentListSchemaResponse(
-        count=len(all_signaled_comments),
-        total=total,
-        data=all_signaled_comments
+        count=len(all_signaled_comments), total=total, data=all_signaled_comments
     )
 
 
-def update_signaled_comment_status(db: Session, signaled_comment_id: int, status: str) -> SignaledCommentSchemaResponse:
+def update_signaled_comment_status(
+    db: Session, signaled_comment_id: int, status: str
+) -> SignaledCommentSchemaResponse:
     """
     Updates the status of a signaled comment and returns the updated signaled comment data.
 
@@ -184,18 +182,13 @@ def update_signaled_comment_status(db: Session, signaled_comment_id: int, status
         including the associated comment, reason for signaling, user information, and updated status.
     """
     signaled_comment = signaled_comment_service.update_status_signaled_comment(
-        db=db,
-        id=signaled_comment_id,
-        status=status
+        db=db, id=signaled_comment_id, status=status
     )
 
     signaled_by = user_service.get_user(db, signaled_comment.user_id)
 
     reason = reason_service.get_reason_by_id(db, signaled_comment.reason_id)
-    reason_response = ReasonSchemaResponse(
-        id=reason.id,
-        reason=reason.reason
-    )
+    reason_response = ReasonSchemaResponse(id=reason.id, reason=reason.reason)
 
     comment = comment_service.get_comment_by_id(db, signaled_comment.comment_id)
     if not comment:
@@ -221,7 +214,7 @@ def update_signaled_comment_status(db: Session, signaled_comment_id: int, status
         id=comment.id,
         profile=profile_schema,
         event_id=event.id,
-        content=comment.content
+        content=comment.content,
     )
 
     return SignaledCommentSchemaResponse(
@@ -230,11 +223,13 @@ def update_signaled_comment_status(db: Session, signaled_comment_id: int, status
         reason=reason_response,
         user_id=signaled_by.id,
         created_at=signaled_comment.created_at,
-        status=signaled_comment.status
+        status=signaled_comment.status,
     )
 
 
-def delete_signaled_comment(db: Session, signaled_comment_id: int, ban: bool, current_user: User) -> dict[str, str]:
+def delete_signaled_comment(
+    db: Session, signaled_comment_id: int, ban: bool, current_user: User
+) -> dict[str, str]:
     """
     Deletes a signaled comment and optionally bans the user if the comment is flagged for inappropriate content.
     Creates an action log based on whether the comment was banned or the signalment was removed.
@@ -249,14 +244,16 @@ def delete_signaled_comment(db: Session, signaled_comment_id: int, ban: bool, cu
     Returns:
         dict[str, str]: A dictionary with a confirmation message indicating that the comment has been deleted.
     """
-    moderation_service.delete_signaled_comment(db, signaled_comment_id, ban, current_user.id)
+    moderation_service.delete_signaled_comment(
+        db, signaled_comment_id, ban, current_user.id
+    )
     if ban:
         action_log_service.create_action_log(
             db,
             current_user.id,
             LogLevelEnum.WARNING,
             ActionEnum.COMMENT_BANNED,
-            f"Admin {current_user.id} accepted signaled comment {id} by {current_user.email}"
+            f"Admin {current_user.id} accepted signaled comment {id} by {current_user.email}",
         )
     else:
         action_log_service.create_action_log(
@@ -264,6 +261,6 @@ def delete_signaled_comment(db: Session, signaled_comment_id: int, ban: bool, cu
             current_user.id,
             LogLevelEnum.INFO,
             ActionEnum.COMMENT_UNSIGNALED,
-            f"Admin {current_user.id} removed comment signalment {id} by {current_user.email}"
+            f"Admin {current_user.id} removed comment signalment {id} by {current_user.email}",
         )
     return {"msg": "supprimé"}

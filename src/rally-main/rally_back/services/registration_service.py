@@ -15,15 +15,13 @@ from errors import (
 )
 
 
-
 def get_number_registration_from_event(db: Session, event_id: int) -> int:
     """used to get the number of registration from an event"""
     event = event_service.get_event_by_id(db, event_id)
 
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
 
     return registration_repo.get_number_registrations_for_event(db, event_id)
@@ -34,15 +32,13 @@ def register_for_event(db: Session, profile_id: int, event_id: int) -> Registrat
     event = event_service.get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
     profile = profile_service.get_profile(db, event.profile_id) if event else None
 
     if not profile:
         raise ProfileNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
 
     registration = get_registration(db, profile_id, event_id)
@@ -50,21 +46,19 @@ def register_for_event(db: Session, profile_id: int, event_id: int) -> Registrat
         registration = Registration(
             profile_id=profile_id,
             event_id=event_id,
-            payment_status=PaymentStatusEnum.FREE
+            payment_status=PaymentStatusEnum.FREE,
         )
 
-        if ( event.date <= datetime.now()
-            or event.cloture_billets < datetime.now()
-        ):
+        if event.date <= datetime.now() or event.cloture_billets < datetime.now():
             raise RegistrationNotPossible(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Inscription impossible : date dépassée"
+                detail="Inscription impossible : date dépassée",
             )
 
         if get_number_registration_from_event(db, event.id) >= event.nb_places:
             raise RegistrationNotPossible(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Inscription impossible : évènement complet"
+                detail="Inscription impossible : évènement complet",
             )
 
         registration_repo.add_registration(db, registration)
@@ -76,7 +70,9 @@ def register_for_event(db: Session, profile_id: int, event_id: int) -> Registrat
 
 def get_registration(db: Session, profile_id: int, event_id: int) -> Registration:
     """used to fetch a registration from event and profile"""
-    return registration_repo.get_registration_by_profile_and_event(db, profile_id, event_id)
+    return registration_repo.get_registration_by_profile_and_event(
+        db, profile_id, event_id
+    )
 
 
 def get_all_registrations_from_event(db: Session, event_id: int) -> list[Registration]:
@@ -89,8 +85,7 @@ def get_registration_by_id(db: Session, registration_id: int) -> Registration:
     registration = registration_repo.get_registration_by_id(db, registration_id)
     if not registration:
         raise RegistrationNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
     return registration
 
@@ -101,26 +96,24 @@ def delete_registration(db: Session, profile_id: int, event_id: int) -> bool:
 
     if not registration:
         raise RegistrationNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
 
     event = event_service.get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
     profile = profile_service.get_profile(db, profile_id)
     if not profile:
         raise ProfileNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
 
     registration_repo.delete_registration(db, registration)
     registration_repo.commit_registration(db)
     return True
+
 
 def delete_registration_by_id(db: Session, registration_id: int) -> bool:
     """used to delete registration by its id"""
@@ -128,26 +121,24 @@ def delete_registration_by_id(db: Session, registration_id: int) -> bool:
 
     if not registration:
         raise RegistrationNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
 
     event = event_service.get_event_by_id(db, registration.event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
     profile = profile_service.get_profile(db, registration.profile_id)
     if not profile:
         raise ProfileNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
 
     registration_repo.delete_registration(db, registration)
     registration_repo.commit_registration(db)
     return True
+
 
 def get_registrations(
     db: Session,
@@ -158,8 +149,8 @@ def get_registrations(
     event_email: Optional[str],
     payment_status: Optional[PaymentStatusEnum],
     offset: int,
-    limit: int
-)->list[Registration]:
+    limit: int,
+) -> list[Registration]:
     """used to fetch registrations according to given filters"""
     return registration_repo.get_registrations_filters(
         db,
@@ -170,18 +161,19 @@ def get_registrations(
         event_email,
         payment_status,
         offset,
-        limit
+        limit,
     )
 
+
 def get_registrations_for_user(
-    db: Session,
-    profile_id: int,
-    offset: int,
-    limit: int
+    db: Session, profile_id: int, offset: int, limit: int
 ) -> list[Registration]:
     """used to fetch registrations for a user"""
-    registrations = registration_repo.get_registrations_from_user(db, profile_id, offset, limit)
+    registrations = registration_repo.get_registrations_from_user(
+        db, profile_id, offset, limit
+    )
     return registrations
+
 
 def get_count_registrations_for_user(
     db: Session,
@@ -190,27 +182,23 @@ def get_count_registrations_for_user(
     event_email: Optional[str] = None,
     date: Optional[datetime] = None,
     event_id: Optional[int] = None,
-    payment_status: Optional[PaymentStatusEnum] = None
+    payment_status: Optional[PaymentStatusEnum] = None,
 ) -> int:
     """used to fetch registrations for a user"""
-    return  registration_repo.get_count_registrations_from_user(
-        db,
-        profile_id,
-        email,
-        event_email,
-        date,
-        event_id,
-        payment_status
+    return registration_repo.get_count_registrations_from_user(
+        db, profile_id, email, event_email, date, event_id, payment_status
     )
 
-def update_registration_status(db: Session, status: PaymentStatusEnum, registration_id: int) -> Registration:
+
+def update_registration_status(
+    db: Session, status: PaymentStatusEnum, registration_id: int
+) -> Registration:
     """used to update the status of a registration"""
     registration = get_registration_by_id(db, registration_id)
 
     if not registration:
         raise RegistrationNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="la ressource n'existe pas"
+            status_code=status.HTTP_404_NOT_FOUND, detail="la ressource n'existe pas"
         )
 
     registration.payment_status = status
@@ -219,12 +207,11 @@ def update_registration_status(db: Session, status: PaymentStatusEnum, registrat
 
     return registration
 
+
 def get_registrations_for_events_by_user(
-    db: Session,
-    profile_id: int,
-    event_id: Optional[int],
-    offset: int,
-    limit: int
-)->list[Registration]:
+    db: Session, profile_id: int, event_id: Optional[int], offset: int, limit: int
+) -> list[Registration]:
     """used to fetch registrations for a event by a user"""
-    return registration_repo.get_registrations_for_event_by_user(db, profile_id, event_id, offset, limit)
+    return registration_repo.get_registrations_for_event_by_user(
+        db, profile_id, event_id, offset, limit
+    )

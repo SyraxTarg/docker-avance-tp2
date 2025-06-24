@@ -10,62 +10,75 @@ from services import event_service
 from errors import EventNotFound
 
 
-
 @pytest.fixture
 def mock_db_session():
     return MagicMock(spec=Session)
+
 
 @pytest.fixture
 def mock_request():
     return MagicMock(spec=Request)
 
+
 @pytest.fixture
 def mock_add_types_to_event(mocker):
     return mocker.patch("services.event_service.add_types_to_event")
+
 
 @pytest.fixture
 def mock_get_profile(mocker):
     return mocker.patch("services.profile_service.get_profile")
 
+
 @pytest.fixture
 def mock_remove_types_to_event(mocker):
     return mocker.patch("services.event_service.remove_types_to_event")
+
 
 @pytest.fixture
 def mock_get_event_by_id(mocker):
     return mocker.patch("services.event_service.get_event_by_id")
 
+
 @pytest.fixture
 def mock_create_event_picture(mocker):
     return mocker.patch("services.event_picture_service.create_event_picture")
+
 
 @pytest.fixture
 def mock_delete_picture(mocker):
     return mocker.patch("services.event_picture_service.delete_picture")
 
+
 @pytest.fixture
 def mock_get_type_by_id(mocker):
     return mocker.patch("repositories.type_repo.get_type_by_id")
+
 
 @pytest.fixture
 def mock_add_new_event(mocker):
     return mocker.patch("repositories.event_repo.add_new_event")
 
+
 @pytest.fixture
 def mock_commit_event(mocker):
     return mocker.patch("repositories.event_repo.commit_event")
+
 
 @pytest.fixture
 def mock_refresh_event(mocker):
     return mocker.patch("repositories.event_repo.refresh_event")
 
+
 @pytest.fixture
 def mock_get_event_by_id(mocker):
     return mocker.patch("repositories.event_repo.get_event_by_id")
 
+
 @pytest.fixture
 def mock_get_events_by_profile(mocker):
     return mocker.patch("repositories.event_repo.get_events_by_profile")
+
 
 @pytest.fixture
 def mock_get_events_filters(mocker):
@@ -89,6 +102,7 @@ def mock_event():
     fake_event.updated_at = datetime.now()
     return fake_event
 
+
 @pytest.fixture
 def mock_type():
     fake_type = MagicMock(spec=Type)
@@ -103,7 +117,7 @@ def test_create_event(
     mock_add_types_to_event,
     mock_add_new_event,
     mock_commit_event,
-    mock_refresh_event
+    mock_refresh_event,
 ):
     # Arrange
     mock_event_class.return_value = mock_event
@@ -122,7 +136,7 @@ def test_create_event(
         datetime.now(),
         datetime.now(),
         [1, 2, 3],
-        1
+        1,
     )
 
     # Assert
@@ -192,7 +206,7 @@ def test_update_event(
     mock_remove_types_to_event,
     mock_event,
     mock_commit_event,
-    mock_refresh_event
+    mock_refresh_event,
 ):
     # Arrange
     mock_get_event_by_id.return_value = mock_event
@@ -231,7 +245,7 @@ def test_add_types_to_event(
     mock_get_type_by_id,
     mock_event,
     mock_type,
-    mock_commit_event
+    mock_commit_event,
 ):
     # Arrange
     mock_get_event_by_id.return_value = mock_event
@@ -259,7 +273,7 @@ def test_remove_types_to_event(
     mock_get_type_by_id,
     mock_event,
     mock_type,
-    mock_commit_event
+    mock_commit_event,
 ):
     # Arrange
     mock_get_event_by_id.return_value = mock_event

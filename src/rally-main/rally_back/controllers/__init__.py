@@ -1,6 +1,7 @@
 """
 This file contains all the controllers
 """
+
 from . import action_logs_controller
 from . import authent_controller
 from . import banned_users_controller

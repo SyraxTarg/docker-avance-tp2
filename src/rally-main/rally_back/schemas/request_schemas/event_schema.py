@@ -6,8 +6,10 @@ from schemas.request_schemas.event_picture_schema import EventPictureSchema
 
 # pylint: disable=R0801
 
+
 class EventSchema(BaseModel):
     """the request schema for events"""
+
     title: str
     description: str
     nb_places: int

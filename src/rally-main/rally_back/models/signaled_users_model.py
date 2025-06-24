@@ -1,11 +1,14 @@
 """This file contains the signaled users model for sqlalchemy"""
+
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from database.db import Base
 
+
 class SignaledUser(Base):
     """signaled users table in db"""
+
     __tablename__ = "signaled_users"
 
     id = Column(Integer, primary_key=True, index=True)

@@ -1,11 +1,14 @@
 """This file contains the signaled events model for sqlalchemy"""
+
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from database.db import Base
 
+
 class SignaledEvent(Base):
     """signaled events table in db"""
+
     __tablename__ = "signaled_events"
 
     id = Column(Integer, primary_key=True, index=True)

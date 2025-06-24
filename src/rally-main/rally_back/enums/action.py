@@ -1,8 +1,11 @@
 """This file contains the enum containing the actions"""
+
 from enum import Enum
+
 
 class ActionEnum(str, Enum):
     """Enum used for action logs"""
+
     LOGIN = "login"
     REGISTRATION = "registration"
     LOGOUT = "logout"

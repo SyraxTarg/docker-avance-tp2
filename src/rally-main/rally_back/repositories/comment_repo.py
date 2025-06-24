@@ -1,4 +1,5 @@
 """This file contains the comment repository"""
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -9,7 +10,7 @@ from models.profile_model import Profile
 from models.user_model import User
 
 
-def add_new_comment(db: Session, comment: Comment)->None:
+def add_new_comment(db: Session, comment: Comment) -> None:
     """
     Adding a new comment in database.
 
@@ -19,7 +20,8 @@ def add_new_comment(db: Session, comment: Comment)->None:
     """
     db.add(comment)
 
-def commit_comment(db: Session)->None:
+
+def commit_comment(db: Session) -> None:
     """
     Commiting changes in the database
 
@@ -28,7 +30,8 @@ def commit_comment(db: Session)->None:
     """
     db.commit()
 
-def delete_comment(db: Session, comment: Comment)->None:
+
+def delete_comment(db: Session, comment: Comment) -> None:
     """
     Deleting a comment from the database.
 
@@ -38,7 +41,8 @@ def delete_comment(db: Session, comment: Comment)->None:
     """
     db.delete(comment)
 
-def refresh_comment(db: Session, comment: Comment)->None:
+
+def refresh_comment(db: Session, comment: Comment) -> None:
     """
     Refreshing an object
 
@@ -48,7 +52,10 @@ def refresh_comment(db: Session, comment: Comment)->None:
     """
     db.refresh(comment)
 
-def get_comment_by_event_id(db: Session, event_id: int, offset: int, limit: int)->list[Comment]:
+
+def get_comment_by_event_id(
+    db: Session, event_id: int, offset: int, limit: int
+) -> list[Comment]:
     """
     Fetching comments by their event.
 
@@ -61,10 +68,16 @@ def get_comment_by_event_id(db: Session, event_id: int, offset: int, limit: int)
     Returns:
         list[Comment]
     """
-    return db.query(Comment).filter(Comment.event_id == event_id).offset(offset).limit(limit).all()
+    return (
+        db.query(Comment)
+        .filter(Comment.event_id == event_id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
-def get_all_comments_by_event_id(db: Session, event_id: int)->list[Comment]:
+def get_all_comments_by_event_id(db: Session, event_id: int) -> list[Comment]:
     """
     Fetching comments by their event.
 
@@ -78,7 +91,7 @@ def get_all_comments_by_event_id(db: Session, event_id: int)->list[Comment]:
     return db.query(Comment).filter(Comment.event_id == event_id).all()
 
 
-def get_all_comments_by_user_id(db: Session, user_id: int)->list[Comment]:
+def get_all_comments_by_user_id(db: Session, user_id: int) -> list[Comment]:
     """
     Fetching comments by their user.
 
@@ -100,7 +113,7 @@ def get_all_comments(
     email: Optional[str],
     event_email: Optional[str],
     date: Optional[datetime],
-    search: Optional[str]
+    search: Optional[str],
 ) -> list[Comment]:
     """
     Fetch all comments with optional filters.
@@ -108,10 +121,17 @@ def get_all_comments(
     query = db.query(Comment)
 
     if event_email is not None:
-        query = query.join(Comment.event).join(Event.profile).join(Profile.user).filter(User.email == event_email)
+        query = (
+            query.join(Comment.event)
+            .join(Event.profile)
+            .join(Profile.user)
+            .filter(User.email == event_email)
+        )
 
     if email is not None:
-        query = query.join(Comment.profile).join(Profile.user).filter(User.email == email)
+        query = (
+            query.join(Comment.profile).join(Profile.user).filter(User.email == email)
+        )
 
     if date is not None:
         query = query.filter(func.date(Comment.created_at) == date.date())
@@ -130,7 +150,7 @@ def get_all_comments_total_count(
     event_email: Optional[str],
     date: Optional[datetime],
     search: Optional[str],
-)->int:
+) -> int:
     """
     Fetching all the comments.
 
@@ -151,10 +171,17 @@ def get_all_comments_total_count(
         query = query.filter(Comment.profile_id == profile_id)
 
     if event_email is not None:
-        query = query.join(Comment.event).join(Event.profile).join(Profile.user).filter(User.email == event_email)
+        query = (
+            query.join(Comment.event)
+            .join(Event.profile)
+            .join(Profile.user)
+            .filter(User.email == event_email)
+        )
 
     if email is not None:
-        query = query.join(Comment.profile).join(Profile.user).filter(User.email == email)
+        query = (
+            query.join(Comment.profile).join(Profile.user).filter(User.email == email)
+        )
 
     if date is not None:
         query = query.filter(func.date(Comment.created_at) == date.date())
@@ -164,7 +191,8 @@ def get_all_comments_total_count(
 
     return query.count()
 
-def get_comment_by_id(db: Session, comment_id: int)->Comment:
+
+def get_comment_by_id(db: Session, comment_id: int) -> Comment:
     """
     Fetching comment by its id.
 
@@ -177,7 +205,10 @@ def get_comment_by_id(db: Session, comment_id: int)->Comment:
     """
     return db.query(Comment).filter(Comment.id == comment_id).first()
 
-def get_comments_by_profile_id(db: Session, profile_id: int, offset: int, limit: int)->list[Comment]:
+
+def get_comments_by_profile_id(
+    db: Session, profile_id: int, offset: int, limit: int
+) -> list[Comment]:
     """
     Fetching comments by their profile.
 
@@ -190,4 +221,10 @@ def get_comments_by_profile_id(db: Session, profile_id: int, offset: int, limit:
     Returns:
         list[Comment]
     """
-    return db.query(Comment).filter(Comment.profile_id == profile_id).offset(offset).limit(limit).all()
+    return (
+        db.query(Comment)
+        .filter(Comment.profile_id == profile_id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )

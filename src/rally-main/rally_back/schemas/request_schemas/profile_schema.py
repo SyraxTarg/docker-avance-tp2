@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 from schemas.request_schemas.user_schema import UserSchema
 
+
 class ProfileSchema(BaseModel):
     """the request schema for profiles"""
+
     first_name: str
     last_name: str
     photo: str
@@ -12,6 +14,7 @@ class ProfileSchema(BaseModel):
 
 class ModifyProfileSchema(BaseModel):
     """the request to modify a profile"""
+
     first_name: str
     last_name: str
     photo: str

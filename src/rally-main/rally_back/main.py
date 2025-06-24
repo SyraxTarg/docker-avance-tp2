@@ -1,6 +1,7 @@
 """
 This file contains the fastapi main
 """
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -22,8 +23,9 @@ from routes import (
     super_admin_routes,
     type_routes,
     user_routes,
-    pictures_routes
+    pictures_routes,
 )
+
 load_dotenv()
 
 FRONT_HOST = os.getenv("RALLY_FRONT_HOST")
@@ -41,9 +43,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-origins = [
-    FRONT_HOST
-]
+origins = [FRONT_HOST]
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,4 +73,5 @@ app.include_router(pictures_routes.router)
 # Démarrage du serveur
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host=f"{LISTEN_IP}", port=int(LISTEN_PORT), reload=True)

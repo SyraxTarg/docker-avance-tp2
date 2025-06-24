@@ -1,4 +1,5 @@
 """This file contains the association models for sqlalchemy"""
+
 from sqlalchemy import Column, Integer, ForeignKey, Table
 from database.db import Base
 

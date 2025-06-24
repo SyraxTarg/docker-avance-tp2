@@ -1,23 +1,26 @@
 """
 This file contains the controller related to registrations
 """
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
-from schemas.response_schemas.profile_schema_response import ProfileRestrictedSchemaResponse
+from schemas.response_schemas.profile_schema_response import (
+    ProfileRestrictedSchemaResponse,
+)
 from services import (
     action_log_service,
     event_service,
     profile_service,
     registration_service,
-    user_service
+    user_service,
 )
 from schemas.request_schemas.registration_schema import RegistrationSchema
 from schemas.response_schemas.registration_schema_response import (
     RegistrationSchemaResponseSchemas,
     RegistrationNumberSchemaResponseSchemas,
     RegistrationListSchemaResponseSchemas,
-    IsUserRegistered
+    IsUserRegistered,
 )
 from enums.log_level import LogLevelEnum
 from enums.action import ActionEnum
@@ -25,7 +28,9 @@ from models.user_model import User
 from enums.payment_status import PaymentStatusEnum
 
 
-def register_event_current_user(db: Session, current_user: User, registration: RegistrationSchema) -> RegistrationSchemaResponseSchemas:
+def register_event_current_user(
+    db: Session, current_user: User, registration: RegistrationSchema
+) -> RegistrationSchemaResponseSchemas:
     """
     Registers the current user for an event.
 
@@ -39,7 +44,9 @@ def register_event_current_user(db: Session, current_user: User, registration: R
 
     This function registers the user for the specified event, logs the action, and returns the registration details.
     """
-    new_registration = registration_service.register_for_event(db, current_user.id, registration.event_id)
+    new_registration = registration_service.register_for_event(
+        db, current_user.id, registration.event_id
+    )
 
     profile = profile_service.get_profile(db, current_user.id)
     user = user_service.get_user(db, profile.id)
@@ -50,7 +57,7 @@ def register_event_current_user(db: Session, current_user: User, registration: R
         photo=profile.photo,
         nb_like=profile.nb_like,
         email=user.email,
-        created_at=user.created_at
+        created_at=user.created_at,
     )
 
     event = event_service.get_event_by_id(db, registration.event_id)
@@ -60,16 +67,16 @@ def register_event_current_user(db: Session, current_user: User, registration: R
         current_user.id,
         LogLevelEnum.INFO,
         ActionEnum.EVENT_REGISTERED,
-        f"Profile {profile.id} registered to event {event.id} at {new_registration.registered_at} by {current_user.email}"
+        f"Profile {profile.id} registered to event {event.id} at {new_registration.registered_at} by {current_user.email}",
     )
 
     return RegistrationSchemaResponseSchemas(
         id=new_registration.id,
-        profile = profile_schema,
+        profile=profile_schema,
         event_id=event.id,
         event_title=event.title,
         registered_at=new_registration.registered_at,
-        payment_status=new_registration.payment_status
+        payment_status=new_registration.payment_status,
     )
 
 
@@ -82,8 +89,8 @@ def get_registrations(
     limit: int,
     email: Optional[str],
     event_email: Optional[str],
-    payment_status: Optional[PaymentStatusEnum]
-)  -> RegistrationListSchemaResponseSchemas:
+    payment_status: Optional[PaymentStatusEnum],
+) -> RegistrationListSchemaResponseSchemas:
     """
     Retrieves a list of registrations based on provided filters.
 
@@ -119,14 +126,14 @@ def get_registrations(
         event_email=event_email,
         date=date,
         event_id=event_id,
-        payment_status=payment_status
+        payment_status=payment_status,
     )
 
     all_registrations = []
 
     for registration in registrations:
         profile = profile_service.get_optional_profile(db, registration.profile_id)
-        if profile :
+        if profile:
             user = user_service.get_user(db, profile.id)
             profile_schema = ProfileRestrictedSchemaResponse(
                 id=profile.id,
@@ -135,7 +142,7 @@ def get_registrations(
                 photo=profile.photo,
                 nb_like=profile.nb_like,
                 email=user.email,
-                created_at=user.created_at
+                created_at=user.created_at,
             )
         else:
             profile_schema = None
@@ -144,22 +151,23 @@ def get_registrations(
 
         all_registrations.append(
             RegistrationSchemaResponseSchemas(
-            id=registration.id,
-            profile = profile_schema,
-            event_id=event.id,
-            event_title=event.title,
-            registered_at=registration.registered_at,
-            payment_status=registration.payment_status
-        ))
+                id=registration.id,
+                profile=profile_schema,
+                event_id=event.id,
+                event_title=event.title,
+                registered_at=registration.registered_at,
+                payment_status=registration.payment_status,
+            )
+        )
 
     return RegistrationListSchemaResponseSchemas(
-        count=len(all_registrations),
-        total=total,
-        data=all_registrations
+        count=len(all_registrations), total=total, data=all_registrations
     )
 
 
-def get_number_places_from_event(db: Session, event_id: int) -> RegistrationNumberSchemaResponseSchemas:
+def get_number_places_from_event(
+    db: Session, event_id: int
+) -> RegistrationNumberSchemaResponseSchemas:
     """
     Retrieves the number of registrations for a specific event.
 
@@ -174,13 +182,12 @@ def get_number_places_from_event(db: Session, event_id: int) -> RegistrationNumb
     """
     number = registration_service.get_number_registration_from_event(db, event_id)
 
-    return RegistrationNumberSchemaResponseSchemas(
-        id= event_id,
-        number=number
-    )
+    return RegistrationNumberSchemaResponseSchemas(id=event_id, number=number)
 
 
-def get_registration(db: Session, event_id: int, profile_id: int) -> RegistrationSchemaResponseSchemas:
+def get_registration(
+    db: Session, event_id: int, profile_id: int
+) -> RegistrationSchemaResponseSchemas:
     """
     Retrieves a specific registration for a profile on a particular event.
 
@@ -207,7 +214,7 @@ def get_registration(db: Session, event_id: int, profile_id: int) -> Registratio
             photo=profile.photo,
             nb_like=profile.nb_like,
             email=user.email,
-            created_at=user.created_at
+            created_at=user.created_at,
         )
     else:
         profile_schema = None
@@ -216,15 +223,17 @@ def get_registration(db: Session, event_id: int, profile_id: int) -> Registratio
 
     return RegistrationSchemaResponseSchemas(
         id=registration.id,
-        profile = profile_schema,
+        profile=profile_schema,
         event=event.id,
         event_title=event.title,
         registered_at=registration.registered_at,
-        payment_status=registration.payment_status
+        payment_status=registration.payment_status,
     )
 
 
-def get_registration_by_id(db: Session, registration_id: int) -> RegistrationSchemaResponseSchemas:
+def get_registration_by_id(
+    db: Session, registration_id: int
+) -> RegistrationSchemaResponseSchemas:
     """
     Retrieves a registration by its unique ID and includes the associated profile and event details.
 
@@ -250,7 +259,7 @@ def get_registration_by_id(db: Session, registration_id: int) -> RegistrationSch
             photo=profile.photo,
             nb_like=profile.nb_like,
             email=user.email,
-            created_at=user.created_at
+            created_at=user.created_at,
         )
     else:
         profile_schema = None
@@ -263,11 +272,13 @@ def get_registration_by_id(db: Session, registration_id: int) -> RegistrationSch
         event_id=event.id,
         event_title=event.title,
         registered_at=registration.registered_at,
-        payment_status=registration.payment_status
+        payment_status=registration.payment_status,
     )
 
 
-def delete_registration(db: Session, profile_id: int, event_id: int, current_user: User) -> dict[str, str]:
+def delete_registration(
+    db: Session, profile_id: int, event_id: int, current_user: User
+) -> dict[str, str]:
     """
     Deletes a registration of a user for a specific event and logs the action.
 
@@ -288,12 +299,14 @@ def delete_registration(db: Session, profile_id: int, event_id: int, current_use
         current_user.id,
         LogLevelEnum.INFO,
         ActionEnum.EVENT_UNREGISTERED,
-        f"Profile {profile_id} unregistered for event {event_id} by {current_user.email}"
+        f"Profile {profile_id} unregistered for event {event_id} by {current_user.email}",
     )
     return {"msg": "deleted"}
 
 
-def get_registrations_for_current_user(db: Session, current_user: User, offset: int, limit: int) -> RegistrationListSchemaResponseSchemas:
+def get_registrations_for_current_user(
+    db: Session, current_user: User, offset: int, limit: int
+) -> RegistrationListSchemaResponseSchemas:
     """
     Retrieves the list of event registrations for the current user, including related profile and event details.
 
@@ -307,10 +320,7 @@ def get_registrations_for_current_user(db: Session, current_user: User, offset: 
         RegistrationListSchemaResponseSchemas: A response containing the count and list of registrations with related details.
     """
     registrations = registration_service.get_registrations_for_user(
-        db,
-        current_user.id,
-        offset,
-        limit
+        db, current_user.id, offset, limit
     )
 
     all_registrations = []
@@ -326,13 +336,12 @@ def get_registrations_for_current_user(db: Session, current_user: User, offset: 
                 photo=profile.photo,
                 nb_like=profile.nb_like,
                 email=user.email,
-                created_at=user.created_at
+                created_at=user.created_at,
             )
         else:
             profile_schema = None
 
         event = event_service.get_event_by_id(db, registration.event_id)
-
 
         all_registrations.append(
             RegistrationSchemaResponseSchemas(
@@ -341,23 +350,21 @@ def get_registrations_for_current_user(db: Session, current_user: User, offset: 
                 event_id=event.id,
                 event_title=event.title,
                 registered_at=registration.registered_at,
-                payment_status=registration.payment_status
+                payment_status=registration.payment_status,
             )
         )
 
     return RegistrationListSchemaResponseSchemas(
         count=len(all_registrations),
-        total=registration_service.get_count_registrations_for_user(db, profile_id=current_user.id),
-        data=all_registrations
+        total=registration_service.get_count_registrations_for_user(
+            db, profile_id=current_user.id
+        ),
+        data=all_registrations,
     )
 
 
 def get_registrations_for_event_by_user(
-    db: Session,
-    current_user: User,
-    event_id: Optional[int],
-    offset: int,
-    limit: int
+    db: Session, current_user: User, event_id: Optional[int], offset: int, limit: int
 ) -> RegistrationListSchemaResponseSchemas:
     """
     Retrieves the list of event registrations for a specific user, filtered by event, including related profile and event details.
@@ -373,13 +380,9 @@ def get_registrations_for_event_by_user(
         RegistrationListSchemaResponseSchemas: A response containing the count and list of registrations with related details.
     """
     registrations = registration_service.get_registrations_for_events_by_user(
-        db,
-        current_user.id,
-        event_id,
-        offset,
-        limit
+        db, current_user.id, event_id, offset, limit
     )
-    total=registration_service.get_count_registrations_for_user(db, event_id=event_id)
+    total = registration_service.get_count_registrations_for_user(db, event_id=event_id)
 
     all_registrations = []
 
@@ -394,35 +397,32 @@ def get_registrations_for_event_by_user(
                 photo=profile.photo,
                 nb_like=profile.nb_like,
                 email=user.email,
-                created_at=user.created_at
+                created_at=user.created_at,
             )
         else:
             profile_schema = None
 
         event = event_service.get_event_by_id(db, registration.event_id)
 
-        all_registrations.append(RegistrationSchemaResponseSchemas(
-            id=registration.id,
-            profile = profile_schema,
-            event_id=event.id,
-            event_title=event.title,
-            registered_at=registration.registered_at,
-            payment_status=registration.payment_status
-        ))
+        all_registrations.append(
+            RegistrationSchemaResponseSchemas(
+                id=registration.id,
+                profile=profile_schema,
+                event_id=event.id,
+                event_title=event.title,
+                registered_at=registration.registered_at,
+                payment_status=registration.payment_status,
+            )
+        )
 
     return RegistrationListSchemaResponseSchemas(
-        count=len(all_registrations),
-        total=total,
-        data=all_registrations
+        count=len(all_registrations), total=total, data=all_registrations
     )
 
-def is_user_registered(db: Session, event_id: int, user_id: int)->IsUserRegistered:
+
+def is_user_registered(db: Session, event_id: int, user_id: int) -> IsUserRegistered:
     """function to know if user is registered to event"""
     if registration_service.get_registration(db, user_id, event_id):
-        return IsUserRegistered(
-            registered=True
-        )
+        return IsUserRegistered(registered=True)
     else:
-        return IsUserRegistered(
-            registered=False
-        )
+        return IsUserRegistered(registered=False)

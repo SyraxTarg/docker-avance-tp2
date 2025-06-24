@@ -17,47 +17,51 @@ router = APIRouter(
     tags=["like"],
 )
 
+
 @router.get("/is_liked", response_model=IsLikedResponseSchema, status_code=200)
 def is_event_liked_by(
     event_id: int = Query(...),
     current_user: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> IsLikedResponseSchema:
     """Check if the current user has liked a specific event."""
     return like_controller.is_event_liked_by_current(db, event_id, current_user.id)
+
 
 @router.get("/", response_model=LikeListSchemaresponseSchemas, status_code=200)
 def get_likes(
     offset: int = Query(0),
     limit: int = Query(5),
     db: Session = Depends(get_db),
-    _: User = Depends(authent_controller.get_connected_user)
+    _: User = Depends(authent_controller.get_connected_user),
 ) -> LikeListSchemaresponseSchemas:
     """Get a paginated list of all likes (admin or authenticated users)."""
     return like_controller.get_likes(db, offset, limit)
+
 
 @router.post("/{event_id}", response_model=LikeSchemaresponseSchemas, status_code=200)
 def like_event(
     event_id: int,
     current_user: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> LikeSchemaresponseSchemas:
     """Like an event as the current user."""
     return like_controller.like_event_current_user(db, current_user.id, event_id)
+
 
 @router.delete("/{event_id}", response_model=dict[str, str], status_code=200)
 def unlike_event(
     event_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(authent_controller.get_connected_user)
+    current_user: User = Depends(authent_controller.get_connected_user),
 ) -> dict[str, str]:
     """Remove a like from an event for the current user."""
     return like_controller.unlike_event(db, current_user.id, event_id)
 
+
 @router.get("/{event_id}", response_model=LikeCountSchemaResponse, status_code=200)
 def like_event_count(
-    event_id: int,
-    db: Session = Depends(get_db)
+    event_id: int, db: Session = Depends(get_db)
 ) -> LikeCountSchemaResponse:
     """Get the count of likes for an event."""
     return like_controller.get_event_like_count(db, event_id)

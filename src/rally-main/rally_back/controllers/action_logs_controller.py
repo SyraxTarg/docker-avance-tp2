@@ -1,15 +1,20 @@
 """
 This file contains the controller related to action logs
 """
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
-from schemas.response_schemas.action_log_schema_response import ActionLogSchemaResponse, ActionLogListResponse
+from schemas.response_schemas.action_log_schema_response import (
+    ActionLogSchemaResponse,
+    ActionLogListResponse,
+)
 from services import action_log_service, role_service, user_service
 from enums.action import ActionEnum
 from enums.log_level import LogLevelEnum
 from schemas.response_schemas.user_schema_response import UserResponse
 from schemas.response_schemas.role_schema_response import RoleSchemaResponse
+
 
 def get_action_logs(
     db: Session,
@@ -18,7 +23,7 @@ def get_action_logs(
     user_id: Optional[int],
     log_type: Optional[LogLevelEnum],
     offset: int,
-    limit: int
+    limit: int,
 ) -> ActionLogListResponse:
     """
     Retrieve all action logs based on optional filtering parameters.
@@ -37,13 +42,7 @@ def get_action_logs(
     """
 
     action_logs = action_log_service.get_action_logs(
-        db,
-        date,
-        action_type,
-        user_id,
-        log_type,
-        offset,
-        limit
+        db, date, action_type, user_id, log_type, offset, limit
     )
 
     all_logs = []
@@ -55,10 +54,7 @@ def get_action_logs(
 
             role = role_service.get_role_by_id(db, user.role_id)
 
-            role_schema = RoleSchemaResponse(
-                id=role.id,
-                role=role.role
-            )
+            role_schema = RoleSchemaResponse(id=role.id, role=role.role)
 
             user_schema = UserResponse(
                 id=user.id,
@@ -66,7 +62,7 @@ def get_action_logs(
                 phone_number=user.phone_number,
                 is_planner=user.is_planner,
                 role=role_schema,
-                account_id=user.account_id
+                account_id=user.account_id,
             )
         else:
             user_schema = None
@@ -78,15 +74,11 @@ def get_action_logs(
                 user=user_schema,
                 actionType=log.action_type,
                 description=log.description,
-                date=log.date
+                date=log.date,
             )
         )
     total = action_log_service.get_action_logs_count(
-        db,
-        date,
-        action_type,
-        user_id,
-        log_type
+        db, date, action_type, user_id, log_type
     )
 
     return ActionLogListResponse(count=len(all_logs), data=all_logs, total=total)

@@ -1,17 +1,27 @@
 """
 This file contains the controller related to signaled signaled events
 """
+
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
-from schemas.request_schemas.signaled_event_schema import SignaledEventByCurrentUserSchema
+from schemas.request_schemas.signaled_event_schema import (
+    SignaledEventByCurrentUserSchema,
+)
 from schemas.response_schemas.reason_schema_response import ReasonSchemaResponse
-from schemas.response_schemas.signaled_event_schema_response import SignaledEventSchemaResponse, SignaledEventListSchemaResponse
+from schemas.response_schemas.signaled_event_schema_response import (
+    SignaledEventSchemaResponse,
+    SignaledEventListSchemaResponse,
+)
 from schemas.response_schemas.user_schema_response import UserResponse
 from schemas.response_schemas.role_schema_response import RoleSchemaResponse
-from schemas.response_schemas.profile_schema_response import  ProfileRestrictedSchemaResponse
+from schemas.response_schemas.profile_schema_response import (
+    ProfileRestrictedSchemaResponse,
+)
 from schemas.response_schemas.type_schema_response import TypeSchemaResponse
-from schemas.response_schemas.event_picture_schema_response import EventPictureSchemaResponse
+from schemas.response_schemas.event_picture_schema_response import (
+    EventPictureSchemaResponse,
+)
 from schemas.response_schemas.address_schema_response import AddressSchemaResponse
 from schemas.response_schemas.event_schema_response import EventSchemaResponse
 from services import (
@@ -25,7 +35,7 @@ from services import (
     signaled_event_service,
     type_service,
     user_service,
-    like_service
+    like_service,
 )
 from enums.log_level import LogLevelEnum
 from enums.action import ActionEnum
@@ -33,9 +43,7 @@ from models.user_model import User
 
 
 def create_signaled_event_by_current_user(
-    db: Session,
-    signaled_event: SignaledEventByCurrentUserSchema,
-    current_user: User
+    db: Session, signaled_event: SignaledEventByCurrentUserSchema, current_user: User
 ) -> bool:
     """
     Creates a signaled event by the current user. This function allows a user to signal an event as inappropriate
@@ -49,12 +57,13 @@ def create_signaled_event_by_current_user(
     Returns:
         bool: Returns True if the signaled event is successfully created, otherwise returns False.
     """
-    return  signaled_event_service.create_signaled_event(
+    return signaled_event_service.create_signaled_event(
         db=db,
         event_id=signaled_event.event_id,
         user_id=current_user.id,
-        reason_id=signaled_event.reason_id
+        reason_id=signaled_event.reason_id,
     )
+
 
 def get_signaled_events(db: Session) -> SignaledEventListSchemaResponse:
     """
@@ -70,14 +79,7 @@ def get_signaled_events(db: Session) -> SignaledEventListSchemaResponse:
     """
     signaled_events = signaled_event_service.get_signaled_events(db)
     total = signaled_event_service.get_signaled_events_by_filters_total_count(
-        db,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None
+        db, None, None, None, None, None, None, None
     )
 
     all_signaled_events = []
@@ -86,29 +88,22 @@ def get_signaled_events(db: Session) -> SignaledEventListSchemaResponse:
         signaled_by = user_service.get_user(db, signaled_comment.user_id)
 
         reason = reason_service.get_reason_by_id(db, signaled_comment.reason_id)
-        reason_response = ReasonSchemaResponse(
-            id=reason.id,
-            reason=reason.reason
-        )
-
+        reason_response = ReasonSchemaResponse(id=reason.id, reason=reason.reason)
 
         event = event_service.get_event_by_id(db, signaled_comment.event_id)
         profile_event = profile_service.get_profile(db, event.profile_id)
         user = user_service.get_user(db, profile_event.user_id)
         role = role_service.get_role_by_id(db, user.role_id)
-        role = RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        )
+        role = RoleSchemaResponse(id=role.id, role=role.role)
         user = UserResponse(
             id=user.id,
             email=user.email,
             phone_number=user.phone_number,
             is_planner=user.is_planner,
             role=role,
-            account_id=user.account_id
+            account_id=user.account_id,
         )
-        profile =  ProfileRestrictedSchemaResponse(
+        profile = ProfileRestrictedSchemaResponse(
             id=profile_event.id,
             first_name=profile_event.first_name,
             last_name=profile_event.last_name,
@@ -116,25 +111,17 @@ def get_signaled_events(db: Session) -> SignaledEventListSchemaResponse:
             nb_like=profile_event.nb_like,
             email=user.email,
             created_at=profile_event.created_at,
-            )
+        )
 
         all_types = []
 
         for type_ in type_service.get_event_types(db, event.id):
-            all_types.append(
-                TypeSchemaResponse(
-                    id=type_.id,
-                    type=type_.type
-                )
-            )
+            all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
         event_pictures = []
         for picture in event_picture_service.get_pictures_from_event(db, event.id):
             event_pictures.append(
-                EventPictureSchemaResponse(
-                    id=picture.id,
-                    photo=picture.photo
-                )
+                EventPictureSchemaResponse(id=picture.id, photo=picture.photo)
             )
 
         event_address = AddressSchemaResponse(
@@ -143,10 +130,10 @@ def get_signaled_events(db: Session) -> SignaledEventListSchemaResponse:
             zipcode=event.address.zipcode,
             number=event.address.number,
             street=event.address.street,
-            country=event.address.country
+            country=event.address.country,
         )
 
-        event_schema =  EventSchemaResponse(
+        event_schema = EventSchemaResponse(
             id=event.id,
             title=event.title,
             description=event.description,
@@ -162,7 +149,7 @@ def get_signaled_events(db: Session) -> SignaledEventListSchemaResponse:
             updated_at=event.updated_at,
             types=all_types,
             pictures=event_pictures,
-            is_liked=None
+            is_liked=None,
         )
 
         all_signaled_events.append(
@@ -172,15 +159,14 @@ def get_signaled_events(db: Session) -> SignaledEventListSchemaResponse:
                 reason=reason_response,
                 user_id=signaled_by.id,
                 created_at=signaled_comment.created_at,
-                status=signaled_comment.status
+                status=signaled_comment.status,
             )
         )
 
     return SignaledEventListSchemaResponse(
-        count=len(all_signaled_events),
-        total= total,
-        data=all_signaled_events
+        count=len(all_signaled_events), total=total, data=all_signaled_events
     )
+
 
 def get_signaled_events_filters(
     db: Session,
@@ -192,7 +178,7 @@ def get_signaled_events_filters(
     email_user: Optional[str],
     email_event_user: Optional[str],
     offset: int,
-    limit: int
+    limit: int,
 ) -> SignaledEventListSchemaResponse:
     """
     Retrieves a list of signaled events filtered by various parameters such as date, user ID,
@@ -224,18 +210,11 @@ def get_signaled_events_filters(
         email_user,
         email_event_user,
         offset,
-        limit
+        limit,
     )
-    
+
     total = signaled_event_service.get_signaled_events_by_filters_total_count(
-        db,
-        date,
-        reason_id,
-        user_id,
-        event_id,
-        status,
-        email_user,
-        email_event_user
+        db, date, reason_id, user_id, event_id, status, email_user, email_event_user
     )
 
     all_signaled_events = []
@@ -244,11 +223,7 @@ def get_signaled_events_filters(
         signaled_by = user_service.get_user(db, signaled_comment.user_id)
 
         reason = reason_service.get_reason_by_id(db, signaled_comment.reason_id)
-        reason_response = ReasonSchemaResponse(
-            id=reason.id,
-            reason=reason.reason
-        )
-
+        reason_response = ReasonSchemaResponse(id=reason.id, reason=reason.reason)
 
         #### SEARCH FOR PROFILE THAT POSTED EVENT ######
 
@@ -256,45 +231,34 @@ def get_signaled_events_filters(
         profile_event = profile_service.get_profile(db, event.profile_id)
         user = user_service.get_user(db, profile_event.user_id)
         role = role_service.get_role_by_id(db, user.role_id)
-        role = RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        )
+        role = RoleSchemaResponse(id=role.id, role=role.role)
         user = UserResponse(
             id=user.id,
             email=user.email,
             phone_number=user.phone_number,
             is_planner=user.is_planner,
             role=role,
-            account_id=user.account_id
+            account_id=user.account_id,
         )
-        profile =  ProfileRestrictedSchemaResponse(
+        profile = ProfileRestrictedSchemaResponse(
             id=profile_event.id,
             first_name=profile_event.first_name,
             last_name=profile_event.last_name,
             photo=profile_event.photo,
             nb_like=profile_event.nb_like,
             email=user.email,
-            created_at=profile_event.created_at
+            created_at=profile_event.created_at,
         )
 
         all_types = []
 
         for type_ in type_service.get_event_types(db, event.id):
-            all_types.append(
-                TypeSchemaResponse(
-                    id=type_.id,
-                    type=type_.type
-                )
-            )
+            all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
         event_pictures = []
         for picture in event_picture_service.get_pictures_from_event(db, event.id):
             event_pictures.append(
-                EventPictureSchemaResponse(
-                    id=picture.id,
-                    photo=picture.photo
-                )
+                EventPictureSchemaResponse(id=picture.id, photo=picture.photo)
             )
 
         event_address = AddressSchemaResponse(
@@ -303,11 +267,10 @@ def get_signaled_events_filters(
             zipcode=event.address.zipcode,
             number=event.address.number,
             street=event.address.street,
-            country=event.address.country
+            country=event.address.country,
         )
 
-
-        event_schema =  EventSchemaResponse(
+        event_schema = EventSchemaResponse(
             id=event.id,
             title=event.title,
             description=event.description,
@@ -323,7 +286,7 @@ def get_signaled_events_filters(
             updated_at=event.updated_at,
             types=all_types,
             pictures=event_pictures,
-            is_liked=None
+            is_liked=None,
         )
 
         all_signaled_events.append(
@@ -333,17 +296,18 @@ def get_signaled_events_filters(
                 reason=reason_response,
                 user_id=signaled_by.id,
                 created_at=signaled_comment.created_at,
-                status=signaled_comment.status
+                status=signaled_comment.status,
             )
-            )
+        )
 
     return SignaledEventListSchemaResponse(
-        count=len(all_signaled_events),
-        total=total,
-        data=all_signaled_events
+        count=len(all_signaled_events), total=total, data=all_signaled_events
     )
 
-def update_signaled_event_status(db: Session, signaled_event_id: int, status: str) -> SignaledEventSchemaResponse:
+
+def update_signaled_event_status(
+    db: Session, signaled_event_id: int, status: str
+) -> SignaledEventSchemaResponse:
     """
     Updates the status of a signaled event and returns the updated information of the event,
     including its details, reasons, and user information.
@@ -358,18 +322,13 @@ def update_signaled_event_status(db: Session, signaled_event_id: int, status: st
         the signaled event, including event details, the reason for signaling, and the user who signaled it.
     """
     signaled_event = signaled_event_service.update_status_signaled_event(
-        db=db,
-        id=signaled_event_id,
-        status=status
+        db=db, id=signaled_event_id, status=status
     )
 
     signaled_by = user_service.get_user(db, signaled_event.user_id)
 
     reason = reason_service.get_reason_by_id(db, signaled_event.reason_id)
-    reason_response = ReasonSchemaResponse(
-        id=reason.id,
-        reason=reason.reason
-    )
+    reason_response = ReasonSchemaResponse(id=reason.id, reason=reason.reason)
 
     #### SEARCH FOR PROFILE THAT POSTED EVENT ######
 
@@ -377,19 +336,16 @@ def update_signaled_event_status(db: Session, signaled_event_id: int, status: st
     profile_event = profile_service.get_profile(db, event.profile_id)
     user = user_service.get_user(db, profile_event.user_id)
     role = role_service.get_role_by_id(db, user.role_id)
-    role = RoleSchemaResponse(
-        id=role.id,
-        role=role.role
-    )
+    role = RoleSchemaResponse(id=role.id, role=role.role)
     user = UserResponse(
         id=user.id,
         email=user.email,
         phone_number=user.phone_number,
         is_planner=user.is_planner,
         role=role,
-        account_id=user.account_id
+        account_id=user.account_id,
     )
-    profile =  ProfileRestrictedSchemaResponse(
+    profile = ProfileRestrictedSchemaResponse(
         id=profile_event.id,
         first_name=profile_event.first_name,
         last_name=profile_event.last_name,
@@ -397,26 +353,18 @@ def update_signaled_event_status(db: Session, signaled_event_id: int, status: st
         nb_like=profile_event.nb_like,
         email=user.email,
         created_at=profile_event.created_at,
-        updated_at=profile_event.updated_at
-        )
+        updated_at=profile_event.updated_at,
+    )
 
     all_types = []
 
     for type_ in type_service.get_event_types(db, event.id):
-        all_types.append(
-            TypeSchemaResponse(
-                id=type_.id,
-                type=type_.type
-            )
-        )
+        all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
     event_pictures = []
     for picture in event_picture_service.get_pictures_from_event(db, event.id):
         event_pictures.append(
-            EventPictureSchemaResponse(
-                id=picture.id,
-                photo=picture.photo
-            )
+            EventPictureSchemaResponse(id=picture.id, photo=picture.photo)
         )
 
     event_address = AddressSchemaResponse(
@@ -425,10 +373,10 @@ def update_signaled_event_status(db: Session, signaled_event_id: int, status: st
         zipcode=event.address.zipcode,
         number=event.address.number,
         street=event.address.street,
-        country=event.address.country
+        country=event.address.country,
     )
 
-    event_schema =  EventSchemaResponse(
+    event_schema = EventSchemaResponse(
         id=event.id,
         title=event.title,
         description=event.description,
@@ -444,7 +392,7 @@ def update_signaled_event_status(db: Session, signaled_event_id: int, status: st
         updated_at=event.updated_at,
         types=all_types,
         pictures=event_pictures,
-        is_liked=None
+        is_liked=None,
     )
 
     return SignaledEventSchemaResponse(
@@ -453,10 +401,13 @@ def update_signaled_event_status(db: Session, signaled_event_id: int, status: st
         reason=reason_response,
         user_id=signaled_by.id,
         created_at=signaled_event.created_at,
-        status=signaled_event.status
+        status=signaled_event.status,
     )
 
-def delete_signaled_event(db: Session, signaled_event_id: int, current_user: User, ban: bool) -> dict[str, str]:
+
+def delete_signaled_event(
+    db: Session, signaled_event_id: int, current_user: User, ban: bool
+) -> dict[str, str]:
     """
     Deletes a signaled event from the system, either by banning the event or unsignaling it,
     and logs the action performed by the current user.
@@ -474,14 +425,16 @@ def delete_signaled_event(db: Session, signaled_event_id: int, current_user: Use
         - If `ban` is set to True, the event is banned, and a warning-level log is created.
         - If `ban` is set to False, the event is unsignaled, and an info-level log is created.
     """
-    moderation_service.delete_signaled_event(db, signaled_event_id, ban, current_user.id)
+    moderation_service.delete_signaled_event(
+        db, signaled_event_id, ban, current_user.id
+    )
     if ban:
         action_log_service.create_action_log(
             db,
             current_user.id,
             LogLevelEnum.WARNING,
             ActionEnum.EVENT_BANNED,
-            f"Profile {current_user.id} banned signaled event {signaled_event_id} at {datetime.now()} bt {current_user.email}"
+            f"Profile {current_user.id} banned signaled event {signaled_event_id} at {datetime.now()} bt {current_user.email}",
         )
     else:
         action_log_service.create_action_log(
@@ -489,11 +442,14 @@ def delete_signaled_event(db: Session, signaled_event_id: int, current_user: Use
             current_user.id,
             LogLevelEnum.INFO,
             ActionEnum.EVENT_UNSIGNALED,
-            f"Profile {current_user.id} unsignaled event {id} at {datetime.now()} by {current_user.email}"
+            f"Profile {current_user.id} unsignaled event {id} at {datetime.now()} by {current_user.email}",
         )
     return {"msg": "deleted"}
 
-def get_signaled_event_by_id(db: Session, signaled_event_id: int) -> SignaledEventSchemaResponse:
+
+def get_signaled_event_by_id(
+    db: Session, signaled_event_id: int
+) -> SignaledEventSchemaResponse:
     """
     Retrieves a signaled event by its ID, along with detailed information about the event,
     the user who signaled it, the reason for the signal, and the profile of the event poster.
@@ -506,16 +462,14 @@ def get_signaled_event_by_id(db: Session, signaled_event_id: int) -> SignaledEve
         SignaledEventSchemaResponse: A schema response containing the details of the signaled event,
         including the event's profile, reason for being signaled, and the user who signaled it.
     """
-    signaled_event = signaled_event_service.get_signaled_event_by_id(db, signaled_event_id)
+    signaled_event = signaled_event_service.get_signaled_event_by_id(
+        db, signaled_event_id
+    )
 
     signaled_by = user_service.get_user(db, signaled_event.user_id)
 
-
     reason = reason_service.get_reason_by_id(db, signaled_event.reason_id)
-    reason_response = ReasonSchemaResponse(
-        id=reason.id,
-        reason=reason.reason
-    )
+    reason_response = ReasonSchemaResponse(id=reason.id, reason=reason.reason)
 
     #### SEARCH FOR PROFILE THAT POSTED EVENT ######
 
@@ -523,33 +477,25 @@ def get_signaled_event_by_id(db: Session, signaled_event_id: int) -> SignaledEve
     profile_event = profile_service.get_profile(db, event.profile_id)
     user = user_service.get_user(db, profile_event.user_id)
 
-    profile =  ProfileRestrictedSchemaResponse(
+    profile = ProfileRestrictedSchemaResponse(
         id=profile_event.id,
         first_name=profile_event.first_name,
         last_name=profile_event.last_name,
         photo=profile_event.photo,
         nb_like=profile_event.nb_like,
         email=user.email,
-        created_at=profile_event.created_at
+        created_at=profile_event.created_at,
     )
 
     all_types = []
 
     for type_ in type_service.get_event_types(db, event.id):
-        all_types.append(
-            TypeSchemaResponse(
-                id=type_.id,
-                type=type_.type
-            )
-        )
+        all_types.append(TypeSchemaResponse(id=type_.id, type=type_.type))
 
     event_pictures = []
     for picture in event_picture_service.get_pictures_from_event(db, event.id):
         event_pictures.append(
-            EventPictureSchemaResponse(
-                id=picture.id,
-                photo=picture.photo
-            )
+            EventPictureSchemaResponse(id=picture.id, photo=picture.photo)
         )
 
     event_address = AddressSchemaResponse(
@@ -558,10 +504,10 @@ def get_signaled_event_by_id(db: Session, signaled_event_id: int) -> SignaledEve
         zipcode=event.address.zipcode,
         number=event.address.number,
         street=event.address.street,
-        country=event.address.country
+        country=event.address.country,
     )
 
-    event_schema =  EventSchemaResponse(
+    event_schema = EventSchemaResponse(
         id=event.id,
         title=event.title,
         description=event.description,
@@ -577,7 +523,7 @@ def get_signaled_event_by_id(db: Session, signaled_event_id: int) -> SignaledEve
         updated_at=event.updated_at,
         types=all_types,
         pictures=event_pictures,
-        is_liked=None
+        is_liked=None,
     )
 
     return SignaledEventSchemaResponse(
@@ -586,5 +532,5 @@ def get_signaled_event_by_id(db: Session, signaled_event_id: int) -> SignaledEve
         reason=reason_response,
         user_id=signaled_by.id,
         created_at=signaled_event.created_at,
-        status=signaled_event.status
+        status=signaled_event.status,
     )

@@ -1,12 +1,13 @@
 """
 This file contains the security related functions
 """
+
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def hash_password(password: str)->str:
+def hash_password(password: str) -> str:
     """
     Hashes the provided password using a secure hashing algorithm.
 
@@ -23,7 +24,7 @@ def hash_password(password: str)->str:
     return pwd_context.hash(password)
 
 
-def verify_password(plain_password, hashed_password)->bool:
+def verify_password(plain_password, hashed_password) -> bool:
     """
     Verifies if the provided plain password matches the hashed password.
 

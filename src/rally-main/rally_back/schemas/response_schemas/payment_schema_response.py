@@ -3,8 +3,10 @@ from typing import Optional
 from pydantic import BaseModel
 from enums.payment_status import PaymentStatusEnum
 
+
 class PaymentSchemaResponse(BaseModel):
     """the response schema for payment"""
+
     id: int
     event_id: Optional[int]
     event_title: str
@@ -20,12 +22,12 @@ class PaymentSchemaResponse(BaseModel):
     status: PaymentStatusEnum
     created_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 class PaymentRestrictedSchemaResponse(BaseModel):
     """the response schema restricted for payment"""
+
     id: int
     event_id: Optional[int]
     event_title: str
@@ -37,35 +39,31 @@ class PaymentRestrictedSchemaResponse(BaseModel):
     status: PaymentStatusEnum
     created_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class PaymentListSchemaResponse(BaseModel):
     """the response schema for many payments"""
+
     count: int
     data: list[PaymentSchemaResponse]
     total: int
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 class PaymentRestrictedListSchemaResponse(BaseModel):
     """the response schema for many payments restricted"""
+
     count: int
     data: list[PaymentRestrictedSchemaResponse]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class PaymentRefundedSchemaResponse(BaseModel):
     """the response schema for refund payments"""
+
     refunded: bool
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

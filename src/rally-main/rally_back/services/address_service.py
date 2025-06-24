@@ -5,14 +5,8 @@ from repositories import address_repo
 from errors import AddressNotFoundError
 
 
-
 def create_address(
-    db: Session,
-    city: str,
-    zipcode: str,
-    number: str,
-    street: str,
-    country: str
+    db: Session, city: str, zipcode: str, number: str, street: str, country: str
 ) -> Address:
     """
     Creates a new address entry in the database.
@@ -32,11 +26,7 @@ def create_address(
     - This function adds the new address to the database, commits it, and refreshes the address object.
     """
     new_address = Address(
-        city=city,
-        zipcode=zipcode,
-        number=number,
-        street=street,
-        country=country
+        city=city, zipcode=zipcode, number=number, street=street, country=country
     )
     address_repo.add_new_address(db, new_address)
     address_repo.commit_address(db)
@@ -74,7 +64,7 @@ def update_address(
     zipcode: str,
     number: str,
     street: str,
-    country: str
+    country: str,
 ) -> Address:
     """
     Updates an existing address in the database.

@@ -23,26 +23,35 @@ from errors import (
 )
 
 
-
 load_dotenv()
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-def create_checkout_session(amount: int, event: str, event_id: int, app_fee: int = 0, metadata: dict = {}, connected_account_id: str = None):
+
+def create_checkout_session(
+    amount: int,
+    event: str,
+    event_id: int,
+    app_fee: int = 0,
+    metadata: dict = {},
+    connected_account_id: str = None,
+):
     """used to create a stripe session and a link leading to a payment page"""
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
-            line_items=[{
-                "price_data": {
-                    "currency": "eur",
-                    "product_data": {
-                        "name": event,
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "eur",
+                        "product_data": {
+                            "name": event,
+                        },
+                        "unit_amount": amount,
                     },
-                    "unit_amount": amount,
-                },
-                "quantity": 1,
-            }],
+                    "quantity": 1,
+                }
+            ],
             mode="payment",
             success_url=f"{os.getenv('STRIPE_SUCCESS_URL')}/{event_id}?onboarding=success",
             cancel_url=f"{os.getenv('STRIPE_CANCEL_URL')}/{event_id}?onboarding=error",
@@ -52,14 +61,13 @@ def create_checkout_session(amount: int, event: str, event_id: int, app_fee: int
                     "destination": connected_account_id,
                 },
                 "application_fee_amount": app_fee,
-                "metadata": metadata
-            }
+                "metadata": metadata,
+            },
         )
         return session
     except Exception as e:
         raise CheckoutError(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Error during checkout"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Error during checkout"
         ) from e
 
 
@@ -72,13 +80,13 @@ def create_connect_account(email: str) -> dict:
             email=email,
             capabilities={
                 "transfers": {"requested": True},
-                "card_payments": {"requested": True}
-            }
+                "card_payments": {"requested": True},
+            },
         )
     except Exception as e:
         raise StripeAccountError(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Error during account creation"
+            detail="Error during account creation",
         ) from e
 
 
@@ -89,13 +97,12 @@ def create_account_onboarding_link(account_id: str) -> str:
             account=account_id,
             refresh_url=f"{os.getenv('STRIPE_REFRESH_URL')}?account=error",
             return_url=f"{os.getenv('STRIPE_RETURN_URL')}?account=success",
-            type="account_onboarding"
+            type="account_onboarding",
         )
         return link.url
     except Exception as e:
         raise PaymentError(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Error during payment"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Error during payment"
         ) from e
 
 
@@ -108,31 +115,28 @@ def create_payment(
     fee: float,
     brut_amount: float,
     stripe_session_id: str,
-    payment_intent: str
+    payment_intent: str,
 ) -> Payment:
     """used to create a new payment instance in db"""
     buyer = user_service.get_user(db, buyer_id)
     if not buyer:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     organizer = user_service.get_user(db, organizer_id)
     if not organizer:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     event = event_service.get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Event not found"
         )
 
     new_payment = Payment(
         event_id=event_id,
-        event_title= event.title,
+        event_title=event.title,
         buyer_id=buyer_id,
         buyer_email=buyer.email,
         organizer_id=organizer_id,
@@ -143,7 +147,7 @@ def create_payment(
         stripe_session_id=stripe_session_id,
         stripe_payment_intent_id=payment_intent,
         status=PaymentStatusEnum.PENDING,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
     payment_repo.add_payment(db, new_payment)
@@ -169,7 +173,7 @@ def get_payments(
     date_apres: Optional[datetime],
     date_avant: Optional[datetime],
     offset: int,
-    limit: int
+    limit: int,
 ) -> list[Payment]:
     """used to get all payments from db according to given filters"""
     return payment_repo.get_payment_filters(
@@ -189,7 +193,7 @@ def get_payments(
         date_apres,
         date_avant,
         offset,
-        limit
+        limit,
     )
 
 
@@ -235,8 +239,7 @@ def get_payment_by_id(db: Session, payment_id: int) -> Payment:
     payment = payment_repo.get_payment_by_id(db, payment_id)
     if not payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
     return payment
 
@@ -246,18 +249,19 @@ def get_payment(db: Session, event_id: int, profile_id: int) -> Payment:
     payment = payment_repo.get_payment(db, event_id, profile_id)
     if not payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
     return payment
 
-def change_payment_status(db: Session, payment_status: PaymentStatusEnum, payment_id: int, intent_id: str) -> Payment:
+
+def change_payment_status(
+    db: Session, payment_status: PaymentStatusEnum, payment_id: int, intent_id: str
+) -> Payment:
     """used to change the payment status"""
     payment = get_payment_by_id(db, payment_id)
     if not payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
 
     payment.status = payment_status
@@ -290,8 +294,7 @@ def handle_stripe_webhook_event(event: dict, db: Session):
     existing_payment = get_payment_by_session_id(db, session_id)
     if not existing_payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
 
     payment_status = None
@@ -310,36 +313,42 @@ def handle_stripe_webhook_event(event: dict, db: Session):
     if not registration_id:
         raise RegistrationNotFound(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Missing registration_id in metadata"
+            detail="Missing registration_id in metadata",
         )
 
     change_payment_status(db, payment_status, existing_payment.id, intent_id)
     if status == PaymentStatusEnum.FAILED:
         registration_service.delete_registration_by_id(db, registration_id)
     else:
-        registration_service.update_registration_status(db, payment_status, registration_id)
+        registration_service.update_registration_status(
+            db, payment_status, registration_id
+        )
         send_facture(db, existing_payment.id)
 
 
-def get_payment_by_event_and_users(db: Session, event_id: int, buyer_id: int, organizer_id: int) -> Payment:
+def get_payment_by_event_and_users(
+    db: Session, event_id: int, buyer_id: int, organizer_id: int
+) -> Payment:
     """used to get a payment by its event and user"""
-    payment = payment_repo.get_payment_by_event_and_users(db, event_id, buyer_id, organizer_id)
+    payment = payment_repo.get_payment_by_event_and_users(
+        db, event_id, buyer_id, organizer_id
+    )
     if not payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
     return payment
+
 
 def get_payment_by_session_id(db: Session, session_id: str) -> Payment:
     """used to get a payment by its session id"""
     payment = payment_repo.get_payment_by_session_id(db, session_id)
     if not payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
     return payment
+
 
 def get_payments_by_user_id(
     db: Session,
@@ -352,7 +361,7 @@ def get_payments_by_user_id(
     date_apres: Optional[datetime],
     date_avant: Optional[datetime],
     offset: int,
-    limit: int
+    limit: int,
 ) -> list[Payment]:
     """used to get payments by user id and given filters"""
     return payment_repo.get_payments_by_user_id_filters(
@@ -366,44 +375,44 @@ def get_payments_by_user_id(
         date_apres,
         date_avant,
         offset,
-        limit
+        limit,
     )
 
-def send_facture(db: Session, payment_id: int)-> bool:
+
+def send_facture(db: Session, payment_id: int) -> bool:
     """used to send factures by email"""
     payment = payment_repo.get_payment_by_id(db, payment_id)
     if not payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
 
     buyer = user_service.get_user_by_email(db, payment.buyer_email)
     if not buyer:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     organizer = user_service.get_user_by_email(db, payment.organizer_email)
     if not organizer:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     env = Environment(loader=FileSystemLoader("templates"))
 
     template_facture = env.get_template("facture.html")
-    facture_content = template_facture.render(
-        payment=payment
+    facture_content = template_facture.render(payment=payment)
+    email_service.send_email(
+        facture_content,
+        buyer.email,
+        f"Facture de votre paiement pour {payment.event_title}",
     )
-    email_service.send_email(facture_content, buyer.email, f"Facture de votre paiement pour {payment.event_title}")
 
     template_recu = env.get_template("recu_organizer.html")
-    recu_content = template_recu.render(
-        payment=payment
+    recu_content = template_recu.render(payment=payment)
+    email_service.send_email(
+        recu_content, organizer.email, f"Reçu de paiement pour {payment.event_title}"
     )
-    email_service.send_email(recu_content, organizer.email, f"Reçu de paiement pour {payment.event_title}")
 
     return True
 
@@ -414,8 +423,7 @@ def send_refund_notification(db: Session, payment_id: int) -> bool:
     payment = get_payment_by_id(db, payment_id)
     if not payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
 
     if payment.status != "refunded":
@@ -424,8 +432,7 @@ def send_refund_notification(db: Session, payment_id: int) -> bool:
     organizer = user_service.get_user_by_email(db, payment.organizer_email)
     if not organizer:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organizer user not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Organizer user not found"
         )
 
     env = Environment(loader=FileSystemLoader("templates"))
@@ -444,7 +451,7 @@ def send_refund_notification(db: Session, payment_id: int) -> bool:
     email_service.send_email(
         refund_content,
         organizer.email,
-        f"Notification de remboursement pour {payment.event_title}"
+        f"Notification de remboursement pour {payment.event_title}",
     )
 
     return True
@@ -456,8 +463,7 @@ def send_refund_confirmation_to_buyer(db: Session, payment_id: int) -> bool:
     payment = get_payment_by_id(db, payment_id)
     if not payment:
         raise PaymentNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
         )
 
     if payment.status != "refunded":
@@ -466,8 +472,7 @@ def send_refund_confirmation_to_buyer(db: Session, payment_id: int) -> bool:
     buyer = user_service.get_user_by_email(db, payment.buyer_email)
     if not buyer:
         raise UserNotFoundError(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Acheteur non trouvé"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Acheteur non trouvé"
         )
 
     env = Environment(loader=FileSystemLoader("templates"))
@@ -487,7 +492,7 @@ def send_refund_confirmation_to_buyer(db: Session, payment_id: int) -> bool:
     email_service.send_email(
         refund_content,
         buyer.email,
-        f"Votre remboursement pour l'événement « {payment.event_title} »"
+        f"Votre remboursement pour l'événement « {payment.event_title} »",
     )
 
     return True

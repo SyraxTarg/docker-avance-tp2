@@ -8,21 +8,26 @@ from database.db import get_db
 from models.user_model import User
 from controllers import event_controller
 from schemas.request_schemas.event_schema import EventSchema
-from schemas.response_schemas.event_schema_response import EventSchemaResponse, EventListSchemaResponse
+from schemas.response_schemas.event_schema_response import (
+    EventSchemaResponse,
+    EventListSchemaResponse,
+)
 
 router = APIRouter(
     prefix="/api/v1/events",
     tags=["events"],
 )
 
+
 @router.post("/", response_model=EventSchemaResponse, status_code=201)
 def post_event(
     event: EventSchema,
     current_user: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> EventSchemaResponse:
     """Create a new event (connected user required)."""
     return event_controller.create_event(db, event, current_user)
+
 
 @router.get("/", response_model=EventListSchemaResponse, status_code=200)
 def get_events(
@@ -40,7 +45,7 @@ def get_events(
     offset: int = Query(0),
     limit: int = Query(5),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(authent_controller.get_optional_user)
+    current_user: Optional[User] = Depends(authent_controller.get_optional_user),
 ) -> EventListSchemaResponse:
     """Retrieve a filtered and paginated list of events."""
     print("POPOP", current_user)
@@ -59,59 +64,56 @@ def get_events(
         search,
         price,
         offset,
-        limit
+        limit,
     )
+
 
 @router.get("/{event_id}", response_model=EventSchemaResponse, status_code=200)
 def get_event(
     event_id: int,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(authent_controller.get_optional_user)
+    current_user: Optional[User] = Depends(authent_controller.get_optional_user),
 ) -> EventSchemaResponse:
     """Retrieve event details by event ID."""
     return event_controller.get_event_by_id(
-        db,
-        current_user.id if current_user else None,
-        event_id
+        db, current_user.id if current_user else None, event_id
     )
+
 
 @router.patch("/{event_id}", response_model=EventSchemaResponse, status_code=200)
 def update_event(
     event_id: int,
     event: EventSchema,
     current_user: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> EventSchemaResponse:
     """Update an existing event (event owner required)."""
     return event_controller.update_event(
-        db,
-        current_user.id if current_user else None,
-        event_id,
-        event
+        db, current_user.id if current_user else None, event_id, event
     )
+
 
 @router.delete("/{event_id}", response_model=dict[str, str], status_code=200)
 def delete_event(
     event_id: int,
     current_user: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> JSONResponse:
     """Delete an event by ID (only by its owner)."""
     return event_controller.delete_event(db, event_id, current_user)
 
-@router.get("/profiles/{event_id}", response_model=EventListSchemaResponse, status_code=200)
+
+@router.get(
+    "/profiles/{event_id}", response_model=EventListSchemaResponse, status_code=200
+)
 def get_events_by_profile(
     event_id: int,
     offset: int = Query(0),
     limit: int = Query(5),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(authent_controller.get_optional_user)
+    current_user: Optional[User] = Depends(authent_controller.get_optional_user),
 ) -> EventListSchemaResponse:
     """Get all events created by a specific profile (paginated)."""
     return event_controller.get_events_by_profile(
-        db,
-        current_user.id if current_user else None,
-        event_id,
-        offset,
-        limit
+        db, current_user.id if current_user else None, event_id, offset, limit
     )

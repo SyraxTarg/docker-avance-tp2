@@ -7,7 +7,7 @@ from controllers import (
     payment_controller,
     profile_controller,
     reason_controller,
-    type_controller
+    type_controller,
 )
 from database.db import get_db
 from schemas.response_schemas.user_schema_response import UserResponse
@@ -27,11 +27,8 @@ from enums.payment_status import PaymentStatusEnum
 from schemas.response_schemas.payment_schema_response import PaymentListSchemaResponse
 
 
+router = APIRouter(prefix="/api/v1/super-admin", tags=["super-admin"])
 
-router = APIRouter(
-    prefix="/api/v1/super-admin",
-    tags=["super-admin"]
-)
 
 # 🔹 1. Accorder des privilèges à un utilisateur
 @router.post("/user/{user_id}", response_model=UserResponse, status_code=201)
@@ -39,7 +36,7 @@ def grant_priviledges(
     user_id: int,
     role: RoleEnum = Query(None),
     _: User = Depends(authent_controller.get_current_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> UserResponse:
     """Grant specific privileges (role) to a user. This action is restricted to super-admins only."""
     return user_controller.grant_priviledges(db, user_id, role)
@@ -55,10 +52,12 @@ def filter_profiles(
     offset: int = Query(0),
     limit: int = Query(5),
     _: User = Depends(authent_controller.get_current_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> ProfileListSchemaResponse:
     """Retrieve a filtered list of profiles based on various criteria (e.g., number of likes, role, planner status, search term)."""
-    return profile_controller.filter_profiles(db, nb_like, is_planner, role, search, offset, limit)
+    return profile_controller.filter_profiles(
+        db, nb_like, is_planner, role, search, offset, limit
+    )
 
 
 # 🔹 3. Récupérer les logs d'action
@@ -71,10 +70,12 @@ def get_logs(
     offset: int = Query(0),
     limit: int = Query(5),
     _: User = Depends(authent_controller.get_current_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> ActionLogListResponse:
     """Fetch action logs with various filters, including date, action type, user ID, and log level. Restricted to super-admins."""
-    return action_logs_controller.get_action_logs(db, date, action_type, user_id, log_type, offset, limit)
+    return action_logs_controller.get_action_logs(
+        db, date, action_type, user_id, log_type, offset, limit
+    )
 
 
 # 🔹 4. Créer un type
@@ -82,7 +83,7 @@ def get_logs(
 def create_type(
     type_schema: TypeSchema,
     current_user: User = Depends(authent_controller.get_current_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> TypeSchemaResponse:
     """Create a new type (e.g., event type, category). This is restricted to super-admins."""
     return type_controller.create_type(db, type_schema, current_user)
@@ -93,7 +94,7 @@ def create_type(
 def create_reason(
     reason: ReasonSchema,
     current_user: User = Depends(authent_controller.get_current_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> ReasonSchemaResponse:
     """Create a new reason (e.g., reason for reporting, flagging). Restricted to super-admins."""
     return reason_controller.create_reason(db, reason, current_user)
@@ -119,7 +120,7 @@ def get_payments(
     offset: int = Query(0),
     limit: int = Query(5),
     _: User = Depends(authent_controller.get_current_super_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> PaymentListSchemaResponse:
     """Retrieve a list of payments with multiple filtering options (e.g., event, buyer, amount range, payment status)."""
     return payment_controller.get_payments(
@@ -139,7 +140,7 @@ def get_payments(
         date_apres,
         date_avant,
         offset,
-        limit
+        limit,
     )
 
 
@@ -147,7 +148,7 @@ def get_payments(
 @router.get("/types", response_model=TypeListSchemaResponse, status_code=200)
 def get_types(
     _: User = Depends(authent_controller.get_connected_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> TypeListSchemaResponse:
     """Retrieve a list of all types (e.g., event types)."""
     return type_controller.get_types(db)

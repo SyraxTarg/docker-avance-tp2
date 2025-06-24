@@ -9,8 +9,6 @@ from repositories import event_repo, type_repo
 from errors import EventNotFound, InvalidContent
 
 
-
-
 def create_event(
     db: Session,
     title: str,
@@ -21,13 +19,14 @@ def create_event(
     date: datetime,
     cloture_billets: datetime,
     types: list[int],
-    address_id: int
-)->Event:
+    address_id: int,
+) -> Event:
     """used to create an event"""
-    if not bad_words_service.is_content_clean(title) or not bad_words_service.is_content_clean(description):
+    if not bad_words_service.is_content_clean(
+        title
+    ) or not bad_words_service.is_content_clean(description):
         raise InvalidContent(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Event contains invalid terms"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Event contains invalid terms"
         )
 
     new_event = Event(
@@ -42,7 +41,7 @@ def create_event(
         cloture_billets=cloture_billets,
         address_id=address_id,
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
     event_repo.add_new_event(db, new_event)
     event_repo.commit_event(db)
@@ -50,15 +49,16 @@ def create_event(
     event_repo.refresh_event(db, new_event)
     return new_event
 
-def get_event_by_id(db: Session, event_id: int)->Event:
+
+def get_event_by_id(db: Session, event_id: int) -> Event:
     """used to fetch an event by its id"""
     event = event_repo.get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="event does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="event does not exist"
         )
     return event
+
 
 def update_event(
     db: Session,
@@ -69,14 +69,13 @@ def update_event(
     price: float,
     date: datetime,
     cloture_billets: datetime,
-    types: list[int]
-)->Event:
+    types: list[int],
+) -> Event:
     """used to update an event"""
     event = get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="event does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="event does not exist"
         )
     event.title = title
     event.description = description
@@ -96,31 +95,31 @@ def update_event(
     event_repo.refresh_event(db, event)
     return event
 
-def add_types_to_event(db: Session, event_id: int, types: list[int])->Event:
+
+def add_types_to_event(db: Session, event_id: int, types: list[int]) -> Event:
     """used to add types to an event"""
     event = get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="event does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="event does not exist"
         )
 
     for t in types:
         type_ = type_repo.get_type_by_id(db, t)
-        if type_  in event.types:
+        if type_ in event.types:
             continue
         event.types.append(type_)
 
     event_repo.commit_event(db)
     return event
 
-def remove_types_to_event(db: Session, event_id: int, types: list[int])->Event:
+
+def remove_types_to_event(db: Session, event_id: int, types: list[int]) -> Event:
     """used to remove types from event"""
     event = get_event_by_id(db, event_id)
     if not event:
         raise EventNotFound(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="event does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="event does not exist"
         )
 
     for t in types:
@@ -128,13 +127,16 @@ def remove_types_to_event(db: Session, event_id: int, types: list[int])->Event:
         if not type_:
             continue
 
-        if type_  in event.types:
+        if type_ in event.types:
             event.types.remove(type_)
 
     event_repo.commit_event(db)
     return event
 
-def get_events_by_profile(db: Session, profile_id: int, offset: int, limit: int) -> list[Event]:
+
+def get_events_by_profile(
+    db: Session, profile_id: int, offset: int, limit: int
+) -> list[Event]:
     """used to fetch event by their profile"""
     return event_repo.get_events_by_profile(db, profile_id, offset, limit)
 
@@ -158,7 +160,7 @@ def get_events_filters(
     search: Optional[str] = None,
     price: Optional[float] = None,
     offset: int = 0,
-    limit: int = 5
+    limit: int = 5,
 ) -> list[Event]:
     """used to fetch events according to given filters"""
     return event_repo.get_events_filters(
@@ -175,8 +177,9 @@ def get_events_filters(
         search,
         price,
         offset,
-        limit
+        limit,
     )
+
 
 def get_count_total_events(
     db: Session,
@@ -187,7 +190,7 @@ def get_count_total_events(
     country: Optional[str] = None,
     city: Optional[str] = None,
     search: Optional[str] = None,
-)->int:
+) -> int:
     """used to fetch count of events according to given filters"""
     return event_repo.get_events_filters_total_count(
         db,

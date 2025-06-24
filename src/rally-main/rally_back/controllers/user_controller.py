@@ -1,6 +1,7 @@
 """
 This file contains the controller related to users
 """
+
 from typing import Optional
 from sqlalchemy.orm import Session
 from enums.role import RoleEnum
@@ -8,6 +9,7 @@ from schemas.request_schemas.user_schema import UserSchema
 from schemas.response_schemas.user_schema_response import UserResponse, UserListResponse
 from schemas.response_schemas.role_schema_response import RoleSchemaResponse
 from services import moderation_service, role_service, user_service
+
 
 def get_user(db: Session, user_id: int) -> UserResponse:
     """
@@ -33,8 +35,9 @@ def get_user(db: Session, user_id: int) -> UserResponse:
         role=RoleSchemaResponse(
             id=role.id,
         ),
-        account_id=user.account_id
+        account_id=user.account_id,
     )
+
 
 def update_user(db: Session, user: UserSchema, user_id: int) -> UserResponse:
     """
@@ -52,11 +55,7 @@ def update_user(db: Session, user: UserSchema, user_id: int) -> UserResponse:
         UserResponse: A response object containing the updated user details, including their role.
     """
     user = user_service.update_user(
-        db,
-        user_id,
-        user.email,
-        user.phone_number,
-        user.is_planner
+        db, user_id, user.email, user.phone_number, user.is_planner
     )
     role = role_service.get_role_by_id(db, user.role_id)
     return UserResponse(
@@ -64,12 +63,10 @@ def update_user(db: Session, user: UserSchema, user_id: int) -> UserResponse:
         email=user.email,
         phone_number=user.phone_number,
         is_planner=user.is_planner,
-        role=RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        ),
-        account_id=user.account_id
+        role=RoleSchemaResponse(id=role.id, role=role.role),
+        account_id=user.account_id,
     )
+
 
 def delete_user(db: Session, user_id: int) -> dict[str, str]:
     """
@@ -88,7 +85,10 @@ def delete_user(db: Session, user_id: int) -> dict[str, str]:
     moderation_service.delete_user(db, user_id)
     return {"msg": "le user a  été signalé"}
 
-def search_users(db: Session, search: Optional[str], offset: int, limit: int) -> UserListResponse:
+
+def search_users(
+    db: Session, search: Optional[str], offset: int, limit: int
+) -> UserListResponse:
     """
     Searches for users based on the provided search term and pagination parameters.
 
@@ -117,17 +117,12 @@ def search_users(db: Session, search: Optional[str], offset: int, limit: int) ->
                 email=user.email,
                 phone_number=user.phone_number,
                 is_planner=user.is_planner,
-                role=RoleSchemaResponse(
-                    id=role.id,
-                    role=role.role
-                ),
-                account_id=user.account_id
+                role=RoleSchemaResponse(id=role.id, role=role.role),
+                account_id=user.account_id,
             )
         )
-    return UserListResponse(
-        count=len(all_users),
-        data=all_users
-    )
+    return UserListResponse(count=len(all_users), data=all_users)
+
 
 def toggle_is_planner(db: Session, user_id: int) -> UserResponse:
     """
@@ -156,12 +151,10 @@ def toggle_is_planner(db: Session, user_id: int) -> UserResponse:
         email=user.email,
         phone_number=user.phone_number,
         is_planner=user.is_planner,
-        role=RoleSchemaResponse(
-            id=role.id,
-            role=role.role
-        ),
-        account_id=user.account_id
+        role=RoleSchemaResponse(id=role.id, role=role.role),
+        account_id=user.account_id,
     )
+
 
 def grant_priviledges(db: Session, user_id: int, role: RoleEnum) -> UserResponse:
     """
@@ -188,14 +181,11 @@ def grant_priviledges(db: Session, user_id: int, role: RoleEnum) -> UserResponse
         role_to_grant = role_service.get_role(db, role)
         user = user_service.grant_role(db, role_to_grant, user)
         return UserResponse(
-        id=user.id,
-        email=user.email,
-        phone_number=user.phone_number,
-        is_planner=user.is_planner,
-        role=RoleSchemaResponse(
-            id=role_to_grant.id,
-            role=role_to_grant.role
-        ),
-        account_id=user.account_id
-    )
+            id=user.id,
+            email=user.email,
+            phone_number=user.phone_number,
+            is_planner=user.is_planner,
+            role=RoleSchemaResponse(id=role_to_grant.id, role=role_to_grant.role),
+            account_id=user.account_id,
+        )
     return None

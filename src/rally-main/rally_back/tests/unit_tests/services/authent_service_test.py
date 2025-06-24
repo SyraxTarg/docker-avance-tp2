@@ -20,75 +20,90 @@ from errors import (
     BadRoleError,
     NoRefreshTokenError,
     UserNotVerifiedError,
-    RecaptchaFailed
+    RecaptchaFailed,
 )
-
 
 
 @pytest.fixture
 def mock_db_session():
     return MagicMock(spec=Session)
 
+
 @pytest.fixture
 def mock_request():
     return MagicMock(spec=Request)
+
 
 @pytest.fixture
 def mock_create_user(mocker):
     return mocker.patch("services.user_service.create_user")
 
+
 @pytest.fixture
 def mock_create_admin(mocker):
     return mocker.patch("services.user_service.create_admin")
+
 
 @pytest.fixture
 def mock_create_super_admin(mocker):
     return mocker.patch("services.user_service.create_super_admin")
 
+
 @pytest.fixture
 def mock_get_user_by_email(mocker):
     return mocker.patch("services.user_service.get_user_by_email")
+
 
 @pytest.fixture
 def mock_get_failed_login(mocker):
     return mocker.patch("services.failed_login_service.get_failed_login")
 
+
 @pytest.fixture
 def mock_create_failed_login(mocker):
     return mocker.patch("services.failed_login_service.create_failed_login")
+
 
 @pytest.fixture
 def mock_update_failed_login(mocker):
     return mocker.patch("services.failed_login_service.update_failed_login")
 
+
 @pytest.fixture
 def mock_delete_failed_login(mocker):
     return mocker.patch("services.failed_login_service.delete_failed_login")
+
 
 @pytest.fixture
 def mock_create_access_token(mocker):
     return mocker.patch("services.authent_service.create_access_token")
 
+
 @pytest.fixture
 def mock_get_role_by_id(mocker):
     return mocker.patch("services.role_service.get_role_by_id")
+
 
 @pytest.fixture
 def mock_create_refresh_token(mocker):
     return mocker.patch("services.authent_service.create_refresh_token")
 
+
 @pytest.fixture
 def mock_validate_recaptcha(mocker):
     return mocker.patch("services.authent_service.verify_recaptcha")
+
 
 @pytest.fixture
 def mock_get_banned_user_by_email(mocker):
     return mocker.patch("services.banned_user_service.get_banned_user_by_email")
 
+
 @pytest.fixture
 def mock_role():
     role = MagicMock()
     return role
+
 
 @pytest.fixture
 def mock_user():
@@ -111,6 +126,7 @@ def mock_admin():
     admin.role.role = "ROLE_ADMIN"
     return admin
 
+
 @pytest.fixture
 def mock_super_admin():
     super_admin = MagicMock()
@@ -129,7 +145,9 @@ def mock_failed_login():
     return failed_login
 
 
-def test_register_user(mock_create_user, mock_db_session, mock_user, mock_get_banned_user_by_email):
+def test_register_user(
+    mock_create_user, mock_db_session, mock_user, mock_get_banned_user_by_email
+):
     # Arrange
     mock_create_user.return_value = mock_user
     mock_get_banned_user_by_email.return_value = None
@@ -142,7 +160,7 @@ def test_register_user(mock_create_user, mock_db_session, mock_user, mock_get_ba
         phone_number="0000000000",
         first_name="John",
         last_name="Doe",
-        photo="default.jpg"
+        photo="default.jpg",
     )
 
     # Assert
@@ -155,7 +173,9 @@ def test_register_user(mock_create_user, mock_db_session, mock_user, mock_get_ba
     mock_get_banned_user_by_email.assert_called_once()
 
 
-def test_register_user_banned(mock_create_user, mock_db_session, mock_user, mock_get_banned_user_by_email):
+def test_register_user_banned(
+    mock_create_user, mock_db_session, mock_user, mock_get_banned_user_by_email
+):
     # Arrange
     mock_get_banned_user_by_email.return_value = mock_user
 
@@ -168,16 +188,21 @@ def test_register_user_banned(mock_create_user, mock_db_session, mock_user, mock
             phone_number="0000000000",
             first_name="John",
             last_name="Doe",
-            photo="default.jpg"
+            photo="default.jpg",
         )
 
     # Assert
-    assert str(result.value) == "401: Cet utilisateur a été banni. Création du compte impossible."
+    assert (
+        str(result.value)
+        == "401: Cet utilisateur a été banni. Création du compte impossible."
+    )
     mock_get_banned_user_by_email.assert_called_once()
     mock_create_user.assert_not_called()
 
 
-def test_register_admin(mock_create_admin, mock_db_session, mock_admin, mock_get_banned_user_by_email):
+def test_register_admin(
+    mock_create_admin, mock_db_session, mock_admin, mock_get_banned_user_by_email
+):
     # Arrange
     mock_create_admin.return_value = mock_admin
     mock_get_banned_user_by_email.return_value = None
@@ -190,7 +215,7 @@ def test_register_admin(mock_create_admin, mock_db_session, mock_admin, mock_get
         phone_number="0000000000",
         first_name="John",
         last_name="Doe",
-        photo="default.jpg"
+        photo="default.jpg",
     )
 
     # Assert
@@ -202,7 +227,10 @@ def test_register_admin(mock_create_admin, mock_db_session, mock_admin, mock_get
     mock_create_admin.assert_called_once()
     mock_get_banned_user_by_email.assert_called_once()
 
-def test_register_admin_banned(mock_create_admin, mock_db_session, mock_admin, mock_get_banned_user_by_email):
+
+def test_register_admin_banned(
+    mock_create_admin, mock_db_session, mock_admin, mock_get_banned_user_by_email
+):
     # Arrange
     mock_get_banned_user_by_email.return_value = mock_admin
 
@@ -215,16 +243,24 @@ def test_register_admin_banned(mock_create_admin, mock_db_session, mock_admin, m
             phone_number="0000000000",
             first_name="John",
             last_name="Doe",
-            photo="default.jpg"
+            photo="default.jpg",
         )
 
     # Assert
-    assert str(result.value) == "401: Cet utilisateur a été banni. Création du compte impossible."
+    assert (
+        str(result.value)
+        == "401: Cet utilisateur a été banni. Création du compte impossible."
+    )
     mock_get_banned_user_by_email.assert_called_once()
     mock_create_admin.assert_not_called()
 
 
-def test_register_super_admin(mock_create_super_admin, mock_db_session, mock_super_admin, mock_get_banned_user_by_email):
+def test_register_super_admin(
+    mock_create_super_admin,
+    mock_db_session,
+    mock_super_admin,
+    mock_get_banned_user_by_email,
+):
     # Arrange
     mock_create_super_admin.return_value = mock_super_admin
     mock_get_banned_user_by_email.return_value = None
@@ -237,7 +273,7 @@ def test_register_super_admin(mock_create_super_admin, mock_db_session, mock_sup
         phone_number="0000000000",
         first_name="John",
         last_name="Doe",
-        photo="default.jpg"
+        photo="default.jpg",
     )
 
     # Assert
@@ -250,7 +286,12 @@ def test_register_super_admin(mock_create_super_admin, mock_db_session, mock_sup
     mock_get_banned_user_by_email.assert_called_once()
 
 
-def test_register_super_admin_banned(mock_create_super_admin, mock_db_session, mock_super_admin, mock_get_banned_user_by_email):
+def test_register_super_admin_banned(
+    mock_create_super_admin,
+    mock_db_session,
+    mock_super_admin,
+    mock_get_banned_user_by_email,
+):
     # Arrange
     mock_get_banned_user_by_email.return_value = mock_super_admin
 
@@ -263,11 +304,14 @@ def test_register_super_admin_banned(mock_create_super_admin, mock_db_session, m
             phone_number="0000000000",
             first_name="John",
             last_name="Doe",
-            photo="default.jpg"
+            photo="default.jpg",
         )
 
     # Assert
-    assert str(result.value) == "401: Cet utilisateur a été banni. Création du compte impossible."
+    assert (
+        str(result.value)
+        == "401: Cet utilisateur a été banni. Création du compte impossible."
+    )
     mock_get_banned_user_by_email.assert_called_once()
     mock_create_super_admin.assert_not_called()
 
@@ -305,10 +349,15 @@ async def test_login_for_access_token(
     mock_get_user_by_email,
     mock_user,
     mock_db_session,
-    mock_validate_recaptcha
+    mock_validate_recaptcha,
 ):
     # Arrange
-    user_auth = UserAuth(email="john.doe@mail.com", password="password", remember_me=False, recaptcha_token="token")
+    user_auth = UserAuth(
+        email="john.doe@mail.com",
+        password="password",
+        remember_me=False,
+        recaptcha_token="token",
+    )
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     hashed_password = pwd_context.hash("password")
     mock_user.password = hashed_password
@@ -319,7 +368,9 @@ async def test_login_for_access_token(
     mock_validate_recaptcha.return_value = True
 
     # Act
-    result = await authent_service.login_for_access_token(mock_request, user_auth, mock_db_session)
+    result = await authent_service.login_for_access_token(
+        mock_request, user_auth, mock_db_session
+    )
 
     # Assert
     assert isinstance(result, JSONResponse)
@@ -340,10 +391,15 @@ async def test_login_for_access_token_recaptcha_failed(
     mock_get_user_by_email,
     mock_user,
     mock_db_session,
-    mock_validate_recaptcha
+    mock_validate_recaptcha,
 ):
     # Arrange
-    user_auth = UserAuth(email="john.doe@mail.com", password="password", remember_me=False, recaptcha_token="token")
+    user_auth = UserAuth(
+        email="john.doe@mail.com",
+        password="password",
+        remember_me=False,
+        recaptcha_token="token",
+    )
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     hashed_password = pwd_context.hash("password")
     mock_user.password = hashed_password
@@ -355,7 +411,9 @@ async def test_login_for_access_token_recaptcha_failed(
 
     # Act
     with pytest.raises(RecaptchaFailed) as result:
-        await authent_service.login_for_access_token(mock_request, user_auth, mock_db_session)
+        await authent_service.login_for_access_token(
+            mock_request, user_auth, mock_db_session
+        )
 
     # Assert
     assert str(result.value) == "400: reCAPTCHA verification failed"
@@ -371,7 +429,12 @@ async def test_login_for_access_token_user_not_verified(
     mock_user,
     mock_db_session,
 ):
-    user_auth = UserAuth(email="john.doe@mail.com", password="password", remember_me=False, recaptcha_token="token")
+    user_auth = UserAuth(
+        email="john.doe@mail.com",
+        password="password",
+        remember_me=False,
+        recaptcha_token="token",
+    )
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     hashed_password = pwd_context.hash("password")
     mock_user.password = hashed_password
@@ -381,7 +444,9 @@ async def test_login_for_access_token_user_not_verified(
 
     # Act
     with pytest.raises(UserNotVerifiedError) as result:
-        await authent_service.login_for_access_token(mock_request, user_auth, mock_db_session)
+        await authent_service.login_for_access_token(
+            mock_request, user_auth, mock_db_session
+        )
 
     # Assert
     assert str(result.value) == "403: User is not verified"
@@ -397,13 +462,20 @@ async def test_login_for_access_token_failed_to_many_times(
     mock_failed_login,
 ):
     # Arrange
-    user_auth = UserAuth(email="john.doe@mail.com", password="password", remember_me=False, recaptcha_token="token")
+    user_auth = UserAuth(
+        email="john.doe@mail.com",
+        password="password",
+        remember_me=False,
+        recaptcha_token="token",
+    )
     mock_failed_login.attempts = 6
     mock_get_failed_login.return_value = mock_failed_login
 
     # Act
     with pytest.raises(TooManyAttemptsError) as result:
-        await authent_service.login_for_access_token(mock_request, user_auth, mock_db_session)
+        await authent_service.login_for_access_token(
+            mock_request, user_auth, mock_db_session
+        )
 
     # Assert
     assert str(result.value) == "429: Too many login attempts. Try again later."
@@ -417,17 +489,24 @@ async def test_login_for_access_token_invalid_credentials_no_failed_login(
     mock_get_user_by_email,
     mock_db_session,
     mock_create_failed_login,
-    mock_failed_login
+    mock_failed_login,
 ):
     # Arrange
-    user_auth = UserAuth(email="john.doe@mail.com", password="password", remember_me=False, recaptcha_token="token")
+    user_auth = UserAuth(
+        email="john.doe@mail.com",
+        password="password",
+        remember_me=False,
+        recaptcha_token="token",
+    )
     mock_get_user_by_email.return_value = None
     mock_get_failed_login.return_value = None
     mock_create_failed_login.return_value = mock_failed_login
 
     # Act
     with pytest.raises(InvalidCredentialsError) as result:
-        await authent_service.login_for_access_token(mock_request, user_auth, mock_db_session)
+        await authent_service.login_for_access_token(
+            mock_request, user_auth, mock_db_session
+        )
 
     # Assert
     assert str(result.value) == "401: Invalid credentials"
@@ -443,10 +522,15 @@ async def test_login_for_access_token_invalid_credentials(
     mock_get_user_by_email,
     mock_db_session,
     mock_update_failed_login,
-    mock_failed_login
+    mock_failed_login,
 ):
     # Arrange
-    user_auth = UserAuth(email="john.doe@mail.com", password="password", remember_me=False, recaptcha_token="token")
+    user_auth = UserAuth(
+        email="john.doe@mail.com",
+        password="password",
+        remember_me=False,
+        recaptcha_token="token",
+    )
     mock_get_user_by_email.return_value = None
     mock_failed_login.attempts = 2
     mock_get_failed_login.return_value = mock_failed_login
@@ -454,7 +538,9 @@ async def test_login_for_access_token_invalid_credentials(
 
     # Act
     with pytest.raises(InvalidCredentialsError) as result:
-        await authent_service.login_for_access_token(mock_request, user_auth, mock_db_session)
+        await authent_service.login_for_access_token(
+            mock_request, user_auth, mock_db_session
+        )
 
     # Assert
     assert str(result.value) == "401: Invalid credentials"
@@ -472,10 +558,15 @@ async def test_login_for_access_token_delete_failed_login(
     mock_db_session,
     mock_failed_login,
     mock_delete_failed_login,
-    mock_validate_recaptcha
+    mock_validate_recaptcha,
 ):
     # Arrange
-    user_auth = UserAuth(email="john.doe@mail.com", password="password", remember_me=False, recaptcha_token="token")
+    user_auth = UserAuth(
+        email="john.doe@mail.com",
+        password="password",
+        remember_me=False,
+        recaptcha_token="token",
+    )
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     hashed_password = pwd_context.hash("password")
     mock_user.password = hashed_password
@@ -488,7 +579,9 @@ async def test_login_for_access_token_delete_failed_login(
     mock_validate_recaptcha.return_value = True
 
     # Act
-    result = await authent_service.login_for_access_token(mock_request, user_auth, mock_db_session)
+    result = await authent_service.login_for_access_token(
+        mock_request, user_auth, mock_db_session
+    )
 
     # Assert
     assert isinstance(result, JSONResponse)
@@ -505,7 +598,6 @@ async def test_login_for_access_token_delete_failed_login(
     mock_get_failed_login.assert_called_once()
 
 
-
 def test_get_current_user_no_token(mock_db_session):
     # Act / Arrange
     with pytest.raises(InvalidTokenError) as result:
@@ -517,11 +609,7 @@ def test_get_current_user_no_token(mock_db_session):
 
 @patch.dict(os.environ, {"SECRET_KEY": "mysecret", "ALGORITHM": "HS256"})
 def test_get_current_user_with_valid_header_token(
-    mock_db_session,
-    mock_user,
-    mock_get_user_by_email,
-    mock_get_role_by_id,
-    mock_role
+    mock_db_session, mock_user, mock_get_user_by_email, mock_get_role_by_id, mock_role
 ):
     # Arrange
     mock_role.role = "ROLE_USER"
@@ -531,9 +619,13 @@ def test_get_current_user_with_valid_header_token(
     mock_get_user_by_email.return_value = mock_user
     mock_get_role_by_id.return_value = mock_role
 
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
         # Act
-        result = authent_service.get_current_user(mock_db_session, token_header, access_token)
+        result = authent_service.get_current_user(
+            mock_db_session, token_header, access_token
+        )
 
     # Assert
     assert result.email == mock_user.email
@@ -545,14 +637,9 @@ def test_get_current_user_with_valid_header_token(
     mock_get_role_by_id.assert_called_once()
 
 
-
 @patch.dict(os.environ, {"SECRET_KEY": "mysecret", "ALGORITHM": "HS256"})
 def test_get_current_user_not_role_user(
-    mock_db_session,
-    mock_user,
-    mock_get_user_by_email,
-    mock_get_role_by_id,
-    mock_role
+    mock_db_session, mock_user, mock_get_user_by_email, mock_get_role_by_id, mock_role
 ):
     # Arrange
     mock_role.role = "ROLE_INVALIDE"
@@ -563,14 +650,20 @@ def test_get_current_user_not_role_user(
 
     # Act
     with pytest.raises(BadRoleError) as result:
-        with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
-            authent_service.get_current_user(mock_db_session, token_header, access_token)
+        with patch(
+            "services.authent_service.jwt.decode",
+            return_value={"sub": "admin@example.com"},
+        ):
+            authent_service.get_current_user(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
-    assert str(result.value) == "403: You do not have the rights to access this resource"
+    assert (
+        str(result.value) == "403: You do not have the rights to access this resource"
+    )
     mock_get_user_by_email.assert_called_once()
     mock_get_role_by_id.assert_called_once()
-
 
 
 def test_get_current_user_email_not_in_token(mock_db_session):
@@ -581,7 +674,9 @@ def test_get_current_user_email_not_in_token(mock_db_session):
     # Act
     with patch("services.authent_service.jwt.decode", return_value={"sub": None}):
         with pytest.raises(InvalidTokenError) as result:
-            authent_service.get_current_user(mock_db_session, token_header, access_token)
+            authent_service.get_current_user(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
     assert str(result.value) == "401: Invalid Token"
@@ -594,16 +689,22 @@ def test_get_current_user_not_found(mock_db_session, mock_get_user_by_email):
     mock_get_user_by_email.return_value = None
 
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
         with pytest.raises(UserNotFoundError) as result:
-            authent_service.get_current_user(mock_db_session, token_header, access_token)
+            authent_service.get_current_user(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
     assert str(result.value) == "404: User not found"
 
 
 @patch.dict(os.environ, {"SECRET_KEY": "mysecret", "ALGORITHM": "HS256"})
-def test_get_current_admin_not_role_admin(mock_db_session, mock_admin, mock_get_user_by_email, mock_get_role_by_id, mock_role):
+def test_get_current_admin_not_role_admin(
+    mock_db_session, mock_admin, mock_get_user_by_email, mock_get_role_by_id, mock_role
+):
     # Arrange
     mock_role.role = "ROLE_INVALIDE"
     access_token = "Mon_token_valide"
@@ -613,17 +714,26 @@ def test_get_current_admin_not_role_admin(mock_db_session, mock_admin, mock_get_
 
     # Act
     with pytest.raises(BadRoleError) as result:
-        with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
-            authent_service.get_current_admin(mock_db_session, token_header, access_token)
+        with patch(
+            "services.authent_service.jwt.decode",
+            return_value={"sub": "admin@example.com"},
+        ):
+            authent_service.get_current_admin(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
-    assert str(result.value) == "403: You do not have the rights to access this ressource"
+    assert (
+        str(result.value) == "403: You do not have the rights to access this ressource"
+    )
     mock_get_user_by_email.assert_called_once()
     mock_get_role_by_id.assert_called_once()
 
 
 @patch.dict(os.environ, {"SECRET_KEY": "mysecret", "ALGORITHM": "HS256"})
-def test_get_current_admin(mock_db_session, mock_admin, mock_get_user_by_email, mock_get_role_by_id, mock_role):
+def test_get_current_admin(
+    mock_db_session, mock_admin, mock_get_user_by_email, mock_get_role_by_id, mock_role
+):
     # Arrange
     mock_role.role = "ROLE_ADMIN"
     access_token = "Mon_token_valide"
@@ -632,8 +742,12 @@ def test_get_current_admin(mock_db_session, mock_admin, mock_get_user_by_email, 
     mock_get_role_by_id.return_value = mock_role
 
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
-        result = authent_service.get_current_admin(mock_db_session, token_header, access_token)
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
+        result = authent_service.get_current_admin(
+            mock_db_session, token_header, access_token
+        )
 
     # Assert
     assert result.email == mock_admin.email
@@ -663,7 +777,9 @@ def test_get_current_admin_email_not_in_token(mock_db_session):
     # Act
     with patch("services.authent_service.jwt.decode", return_value={"sub": None}):
         with pytest.raises(InvalidTokenError) as result:
-            authent_service.get_current_admin(mock_db_session, token_header, access_token)
+            authent_service.get_current_admin(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
     assert str(result.value) == "401: Invalid Token"
@@ -676,12 +792,17 @@ def test_get_current_admin_not_found(mock_db_session, mock_get_user_by_email):
     mock_get_user_by_email.return_value = None
 
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
         with pytest.raises(UserNotFoundError) as result:
-            authent_service.get_current_admin(mock_db_session, token_header, access_token)
+            authent_service.get_current_admin(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
     assert str(result.value) == "404: User not found"
+
 
 def test_get_current_super_admin_no_token(mock_db_session):
     # Act / Arrange
@@ -694,7 +815,13 @@ def test_get_current_super_admin_no_token(mock_db_session):
 
 
 @patch.dict(os.environ, {"SECRET_KEY": "mysecret", "ALGORITHM": "HS256"})
-def test_get_current_super_admin(mock_db_session, mock_super_admin, mock_get_user_by_email, mock_role, mock_get_role_by_id):
+def test_get_current_super_admin(
+    mock_db_session,
+    mock_super_admin,
+    mock_get_user_by_email,
+    mock_role,
+    mock_get_role_by_id,
+):
     # Arrange
     mock_role.role = "ROLE_SUPER_ADMIN"
     access_token = "Mon_token_valide"
@@ -703,8 +830,12 @@ def test_get_current_super_admin(mock_db_session, mock_super_admin, mock_get_use
     mock_get_role_by_id.return_value = mock_role
 
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
-        result = authent_service.get_current_super_admin(mock_db_session, token_header, access_token)
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
+        result = authent_service.get_current_super_admin(
+            mock_db_session, token_header, access_token
+        )
 
     # Assert
     assert result.email == mock_super_admin.email
@@ -717,7 +848,13 @@ def test_get_current_super_admin(mock_db_session, mock_super_admin, mock_get_use
 
 
 @patch.dict(os.environ, {"SECRET_KEY": "mysecret", "ALGORITHM": "HS256"})
-def test_get_current_super_admin_no_role_super_admin(mock_db_session, mock_super_admin, mock_get_user_by_email, mock_role, mock_get_role_by_id):
+def test_get_current_super_admin_no_role_super_admin(
+    mock_db_session,
+    mock_super_admin,
+    mock_get_user_by_email,
+    mock_role,
+    mock_get_role_by_id,
+):
     # Arrange
     mock_role.role = "ROLE_INVALIDE"
     access_token = "Mon_token_valide"
@@ -727,11 +864,18 @@ def test_get_current_super_admin_no_role_super_admin(mock_db_session, mock_super
 
     # Act
     with pytest.raises(BadRoleError) as result:
-        with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
-            authent_service.get_current_super_admin(mock_db_session, token_header, access_token)
+        with patch(
+            "services.authent_service.jwt.decode",
+            return_value={"sub": "admin@example.com"},
+        ):
+            authent_service.get_current_super_admin(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
-    assert str(result.value) == "403: You do not have the rights to access this ressource"
+    assert (
+        str(result.value) == "403: You do not have the rights to access this ressource"
+    )
     mock_get_user_by_email.assert_called_once()
     mock_get_role_by_id.assert_called_once()
 
@@ -744,7 +888,9 @@ def test_get_current_super_admin_email_not_in_token(mock_db_session):
     # Act
     with patch("services.authent_service.jwt.decode", return_value={"sub": None}):
         with pytest.raises(InvalidTokenError) as result:
-            authent_service.get_current_super_admin(mock_db_session, token_header, access_token)
+            authent_service.get_current_super_admin(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
     assert str(result.value) == "401: Invalid Token"
@@ -757,13 +903,16 @@ def test_get_current_super_admin_not_found(mock_db_session, mock_get_user_by_ema
     mock_get_user_by_email.return_value = None
 
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
         with pytest.raises(UserNotFoundError) as result:
-            authent_service.get_current_super_admin(mock_db_session, token_header, access_token)
+            authent_service.get_current_super_admin(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
     assert str(result.value) == "404: User not found"
-
 
 
 @pytest.mark.asyncio
@@ -783,7 +932,9 @@ async def test_refresh_token_email_not_in_payload(mock_db_session):
 @pytest.mark.asyncio
 async def test_refresh_token_no_refresh_token(mock_db_session):
     # Act / Arrange
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
         with pytest.raises(NoRefreshTokenError) as result:
             await authent_service.refresh_token(mock_db_session, None)
 
@@ -797,7 +948,9 @@ async def test_refresh_token_user_none(mock_db_session, mock_get_user_by_email):
     refresh_token = "bearer Mon_token_invalide"
     mock_get_user_by_email.return_value = None
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
         with pytest.raises(UserNotFoundError) as result:
             await authent_service.refresh_token(mock_db_session, refresh_token)
 
@@ -806,19 +959,25 @@ async def test_refresh_token_user_none(mock_db_session, mock_get_user_by_email):
 
 
 @pytest.mark.asyncio
-async def test_refresh_token(mock_db_session, mock_get_user_by_email, mock_user, mock_create_access_token):
+async def test_refresh_token(
+    mock_db_session, mock_get_user_by_email, mock_user, mock_create_access_token
+):
     # Arrange
     refresh_token = "bearer Mon_token_valide"
     mock_get_user_by_email.return_value = mock_user
     mock_create_access_token.return_value = "mon_access_token"
 
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
         result = await authent_service.refresh_token(mock_db_session, refresh_token)
 
     # Assert
     assert isinstance(result, JSONResponse) == True
-    assert result.body == JSONResponse(content={"access_token": "mon_access_token"}).body
+    assert (
+        result.body == JSONResponse(content={"access_token": "mon_access_token"}).body
+    )
     assert result.status_code == 200
 
 
@@ -834,8 +993,12 @@ def test_get_connected_user(
     mock_get_user_by_email.return_value = mock_user
 
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
-        result = authent_service.get_connected_user(mock_db_session, token_header, access_token)
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
+        result = authent_service.get_connected_user(
+            mock_db_session, token_header, access_token
+        )
 
     # Assert
     assert result.email == mock_user.email
@@ -854,7 +1017,9 @@ def test_get_connected_user_email_not_in_token(mock_db_session):
     # Act
     with patch("services.authent_service.jwt.decode", return_value={"sub": None}):
         with pytest.raises(InvalidTokenError) as result:
-            authent_service.get_connected_user(mock_db_session, token_header, access_token)
+            authent_service.get_connected_user(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
     assert str(result.value) == "401: Invalid Token"
@@ -867,9 +1032,13 @@ def test_get_connected_user_not_found(mock_db_session, mock_get_user_by_email):
     mock_get_user_by_email.return_value = None
 
     # Act
-    with patch("services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}):
+    with patch(
+        "services.authent_service.jwt.decode", return_value={"sub": "admin@example.com"}
+    ):
         with pytest.raises(UserNotFoundError) as result:
-            authent_service.get_connected_user(mock_db_session, token_header, access_token)
+            authent_service.get_connected_user(
+                mock_db_session, token_header, access_token
+            )
 
     # Assert
     assert str(result.value) == "404: User not found"
