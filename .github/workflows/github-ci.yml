@@ -58,8 +58,9 @@ jobs:
       - name: Connect to VM and deploy
         run: |
           ssh ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_PUBLIC_IP }} << 'EOF'
-            docker pull 20220796/raqiros:latest
-            docker stop rally || true
-            docker rm rally || true
-            docker run -d --name rally -p 80:80 20220796/raqiros:latest
+            git clone https://github.com/SyraxTarg/docker-avance-tp2.git
+            cd docker-avance-tp2
+            git pull origin main
+            docker compose down -v
+            docker compose -f docker-compose-prod.yml up --build
           EOF
