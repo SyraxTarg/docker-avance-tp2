@@ -14,10 +14,7 @@ services:
       - rally-network
 
   rally-back:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: prod
+    image: 20220796/raqiros:latest
     env_file:
       - .env
     container_name: back

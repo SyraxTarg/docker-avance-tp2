@@ -238,3 +238,25 @@ Après avoir vidé le cache api et purgé le cache de pip on gagne à peu pres 2
 # TP3
 
 Le tp3 a été effectué sur github action et non sur gitlab.
+
+```powershell
+➜ docker pull 20220796/raqiros:bcdaf3322457f967fa30b9255358349878e2fc32
+bcdaf3322457f967fa30b9255358349878e2fc32: Pulling from 20220796/raqiros
+dad67da3f26b: Already exists
+799440a7bae7: Already exists
+9596beeb5a6d: Already exists
+15658014cd85: Already exists
+3d46ba4fb0f6: Pull complete
+53ebbe174f3b: Pull complete
+e0802517182f: Pull complete
+Digest: sha256:a79fdadd8aeb369a2ca1114284488e05d89ce8697ae7d21632b39acdfdb54097
+Status: Downloaded newer image for 20220796/raqiros:bcdaf3322457f967fa30b9255358349878e2fc32
+docker.io/20220796/raqiros:bcdaf3322457f967fa30b9255358349878e2fc32
+
+```
+
+J'ai juste modifié le dockerfile-prod vu que c'est l'image de prod qui a été push, je sais pas si c'est vraiment bien de push l'image de dev sur le registry
+```powershell
+➜ curl -X GET http://localhost:8000/api/v1/events/
+{"count":0,"total":0,"data":[]}
+```
