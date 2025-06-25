@@ -61,3 +61,25 @@ jobs:
             20220796/raqiros:latest
             20220796/raqiros:${{ github.sha }}
 
+  deploy-rally:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ vars.DEPLOY_PUBLIC_IP }} >> ~/.ssh/known_hosts
+
+      - name: Connect to VM and deploy
+        run: |
+          ssh ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_PUBLIC_IP }} << 'EOF'
+            docker pull 20220796/raqiros:latest
+            docker stop rally || true
+            docker rm rally || true
+            docker run -d --name rally -p 80:80 20220796/raqiros:latest
+          EOF

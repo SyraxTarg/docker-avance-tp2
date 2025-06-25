@@ -240,23 +240,144 @@ Après avoir vidé le cache api et purgé le cache de pip on gagne à peu pres 2
 Le tp3 a été effectué sur github action et non sur gitlab.
 
 ```powershell
-➜ docker pull 20220796/raqiros:bcdaf3322457f967fa30b9255358349878e2fc32
-bcdaf3322457f967fa30b9255358349878e2fc32: Pulling from 20220796/raqiros
+➜ docker pull 20220796/raqiros:latest
+latest: Pulling from 20220796/raqiros
 dad67da3f26b: Already exists
 799440a7bae7: Already exists
 9596beeb5a6d: Already exists
 15658014cd85: Already exists
-3d46ba4fb0f6: Pull complete
-53ebbe174f3b: Pull complete
-e0802517182f: Pull complete
-Digest: sha256:a79fdadd8aeb369a2ca1114284488e05d89ce8697ae7d21632b39acdfdb54097
-Status: Downloaded newer image for 20220796/raqiros:bcdaf3322457f967fa30b9255358349878e2fc32
-docker.io/20220796/raqiros:bcdaf3322457f967fa30b9255358349878e2fc32
-
+dc34246f9a4a: Pull complete
+1d3af568f7a5: Pull complete
+d42dccc5b9c1: Pull complete
+Digest: sha256:0f38228e0f0e2ab9e0531701048e802417caf3c1df867dea8492e240093425d9
+Status: Downloaded newer image for 20220796/raqiros:latest
+docker.io/20220796/raqiros:latest
 ```
 
-J'ai juste modifié le dockerfile-prod vu que c'est l'image de prod qui a été push, je sais pas si c'est vraiment bien de push l'image de dev sur le registry
+J'ai juste modifié le dockerfile-prod vu que c'est l'image de prod qui a été push
+
+```powershell
+➜ docker compose -f docker-compose-prod.yml up --build
+[+] Running 2/2
+ ✔ Container db    Created                                                                                                                                                                                       0.0s
+ ✔ Container back  Recreated                                                                                                                                                                                     0.1s
+Attaching to back, db
+```
+
 ```powershell
 ➜ curl -X GET http://localhost:8000/api/v1/events/
 {"count":0,"total":0,"data":[]}
+```
+
+## Part 3 : Deploy the world
+
+```powershell
+➜ ssh syraxtarg@172.201.54.43
+The authenticity of host '172.201.54.43 (172.201.54.43)' can't be established.
+[...]
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '172.201.54.43' (ED25519) to the list of known hosts.
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.11.0-1015-azure x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Wed Jun 25 07:36:09 UTC 2025
+
+  System load:  0.15              Processes:             115
+  Usage of /:   5.5% of 28.02GB   Users logged in:       0
+  Memory usage: 27%               IPv4 address for eth0: 10.0.0.4
+  Swap usage:   0%
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+syraxtarg@VM-Rally:~$ ls
+```
+
+```powershell
+syraxtarg@VM-Rally:~$ sudo -l
+Matching Defaults entries for syraxtarg on VM-Rally:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin,
+    use_pty
+
+User syraxtarg may run the following commands on VM-Rally:
+    (ALL : ALL) ALL
+    (ALL) NOPASSWD: ALL
+```
+
+```powershell
+syraxtarg@VM-Rally:~$ groups deploy
+deploy : deploy docker
+```
+
+En effet, l'app est pétée
+
+```powershell
+➜ ssh -i C:\Users\utilisateur/.ssh/deploy-azure deploy@172.201.54.43 docker run 20220796/raqiros:latest
+Unable to find image '20220796/raqiros:latest' locally
+latest: Pulling from 20220796/raqiros
+dad67da3f26b: Pulling fs layer
+799440a7bae7: Pulling fs layer
+9596beeb5a6d: Pulling fs layer
+15658014cd85: Pulling fs layer
+dc34246f9a4a: Pulling fs layer
+1d3af568f7a5: Pulling fs layer
+d42dccc5b9c1: Pulling fs layer
+15658014cd85: Waiting
+dc34246f9a4a: Waiting
+1d3af568f7a5: Waiting
+d42dccc5b9c1: Waiting
+799440a7bae7: Verifying Checksum
+799440a7bae7: Download complete
+9596beeb5a6d: Verifying Checksum
+9596beeb5a6d: Download complete
+dad67da3f26b: Verifying Checksum
+dad67da3f26b: Download complete
+15658014cd85: Verifying Checksum
+15658014cd85: Download complete
+dc34246f9a4a: Verifying Checksum
+dc34246f9a4a: Download complete
+1d3af568f7a5: Verifying Checksum
+1d3af568f7a5: Download complete
+dad67da3f26b: Pull complete
+799440a7bae7: Pull complete
+d42dccc5b9c1: Verifying Checksum
+d42dccc5b9c1: Download complete
+9596beeb5a6d: Pull complete
+15658014cd85: Pull complete
+dc34246f9a4a: Pull complete
+1d3af568f7a5: Pull complete
+d42dccc5b9c1: Pull complete
+Digest: sha256:0f38228e0f0e2ab9e0531701048e802417caf3c1df867dea8492e240093425d9
+Status: Downloaded newer image for 20220796/raqiros:latest
+Traceback (most recent call last):
+  File "//main.py", line 9, in <module>
+    from database.db import engine, Base
+  File "/database/__init__.py", line 3, in <module>
+    from . import db
+  File "/database/db.py", line 12, in <module>
+    raise ValueError(
+ValueError: ❌ DATABASE_URL n'est pas définie dans le fichier d'environnement sélectionné
 ```
