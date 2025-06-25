@@ -61,6 +61,35 @@ jobs:
             git clone https://github.com/SyraxTarg/docker-avance-tp2.git
             cd docker-avance-tp2
             git pull origin main
+            cp .env.sample .env
+            sed -i "s#SECRET_KEY#${{ secrets.SECRET_KEY }}#g" .env
+            sed -i "s#ALGORITHM#${{ secrets.ALGORITHM }}#g" .env
+            sed -i "s#ACCESS_TOKEN_EXPIRE_MINUTES#${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}#g" .env
+            sed -i "s#REFRESH_TOKEN_EXPIRE_DAYS#${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}#g" .env
+            sed -i "s#REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME#${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER_ME }}#g" .env
+            sed -i "s#STRIPE_SECRET_KEY#${{ secrets.STRIPE_SECRET_KEY }}#g" .env
+            sed -i "s#STRIPE_WEBHOOK_SECRET#${{ secrets.STRIPE_WEBHOOK_SECRET }}#g" .env
+            sed -i "s#STRIPE_SUCCESS_URL#${{ secrets.STRIPE_SUCCESS_URL }}#g" .env
+            sed -i "s#STRIPE_CANCEL_URL#${{ secrets.STRIPE_CANCEL_URL }}#g" .env
+            sed -i "s#STRIPE_REFRESH_URL#${{ secrets.STRIPE_REFRESH_URL }}#g" .env
+            sed -i "s#STRIPE_RETURN_URL#${{ secrets.STRIPE_RETURN_URL }}#g" .env
+            sed -i "s#EMAIL_SENDER#${{ secrets.EMAIL_SENDER }}#g" .env
+            sed -i "s#SMTP_SENDER#${{ secrets.SMTP_SENDER }}#g" .env
+            sed -i "s#SMTP_PORT#${{ secrets.SMTP_PORT }}#g" .env
+            sed -i "s#EMAIL_PASSWORD#${{ secrets.EMAIL_PASSWORD }}#g" .env
+            sed -i "s#BANNED_TERMS_PATH#${{ secrets.BANNED_TERMS_PATH }}#g" .env
+            sed -i "s#RALLY_HOST#${{ secrets.RALLY_HOST }}#g" .env
+            sed -i "s#RALLY_BACK_HOST#${{ secrets.RALLY_BACK_HOST }}#g" .env
+            sed -i "s#NEXT_PUBLIC_RALLY_BACK_HOST#${{ secrets.NEXT_PUBLIC_RALLY_BACK_HOST }}#g" .env
+            sed -i "s#RALLY_FRONT_HOST#${{ secrets.RALLY_FRONT_HOST }}#g" .env
+            sed -i "s#CLOUDINARY_CLOUD_NAME#${{ secrets.CLOUDINARY_CLOUD_NAME }}#g" .env
+            sed -i "s#CLOUDINARY_API_KEY#${{ secrets.CLOUDINARY_API_KEY }}#g" .env
+            sed -i "s#CLOUDINARY_API_SECRET#${{ secrets.CLOUDINARY_API_SECRET }}#g" .env
+            sed -i "s#DATABASE_URL#${{ secrets.DATABASE_URL }}#g" .env
+            sed -i "s#RECAPTCHA_SECRET_KEY#${{ secrets.RECAPTCHA_SECRET_KEY }}#g" .env
+            sed -i "s#RECAPTCHA_FRONT#${{ secrets.RECAPTCHA_FRONT }}#g" .env
+            sed -i "s#LISTEN_IP#${{ secrets.LISTEN_IP }}#g" .env
+            sed -i "s#LISTEN_PORT#${{ secrets.LISTEN_PORT }}#g" .env
             docker compose down -v
             docker compose -f docker-compose-prod.yml up --build
           EOF
