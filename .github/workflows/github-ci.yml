@@ -31,3 +31,7 @@ jobs:
         working-directory: ./src/rally-main/rally_back
         run: pylint .
 
+      - name: scanning secrets with detect secrets
+        working-directory: ./src/rally-main/rally_back
+        run: detect-secrets scan .
+
