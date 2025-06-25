@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build-dependencies:
+  building-rally:
     runs-on: ubuntu-latest
 
     strategy:
@@ -27,38 +27,15 @@ jobs:
         working-directory: .
         run: pip install -r requirements.txt
 
-  lint:
-      runs-on: ubuntu-latest
-      strategy:
-        matrix:
-          python-version: ["3.12"]
+      - name: Analysing the code with pylint
+        working-directory: ./src/rally-main/rally_back
+        run: pylint .
 
-          steps:
-          - name: Analysing the code with pylint
-            working-directory: ./src/rally-main/rally_back
-            run: pylint .
+      - name: scanning secrets with detect secrets
+        working-directory: src/rally-main/rally_back
+        run: detect-secrets scan .
 
-  sanning-for-secrets:
-      runs-on: ubuntu-latest
-      strategy:
-        matrix:
-          python-version: ["3.12"]
-
-          steps:
-            - name: scanning secrets with detect secrets
-              working-directory: ./src/rally-main/rally_back
-              run: detect-secrets scan .
-
-  build-image-docker:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
-
-        steps:
-          - name: building docker image
-            working-directory: .
-            run: docker build . -t rally_back_git
-
-
+      - name: building docker image
+        working-directory: .
+        run: docker build . -t rally_back_git
 
